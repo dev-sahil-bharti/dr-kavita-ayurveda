@@ -68,9 +68,21 @@ const appointmentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'confirmed', 'completed', 'cancelled'],
+    enum: ['pending', 'confirmed', 'completed', 'cancelled', 'rescheduled'],
     default: 'pending'
-  }
+  },
+  doctorNote: { type: String, default: '' },
+  paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' },
+  paymentLink: { type: String, default: '' },
+  cancelReason: { type: String },
+  checkedIn: { type: Boolean, default: false },
+  checkedInAt: { type: Date },
+  followUpDate: { type: Date },
+  sessionNumber: { type: Number },        // for multi-session Panchkarma tracking
+  totalSessions: { type: Number },        // e.g. 7-day Panchkarma course
+  reminderSent: { type: Boolean, default: false }
 }, { timestamps: true });
+
+appointmentSchema.index({ date: 1, timeSlot: 1, status: 1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);

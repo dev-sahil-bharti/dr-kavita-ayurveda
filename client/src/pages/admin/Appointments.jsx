@@ -1,13 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import AppointmentCard from '../../components/admin/AppointmentCard';
 import { X, User, Phone, Mail, FileText, Calendar, Clock, Activity, CheckCircle, XCircle, MapPin, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 
+import CalendarView from '../../components/admin/CalendarView';
+
 const Appointments = () => {
+  const location = useLocation();
+  const [viewMode, setViewMode] = useState(location.pathname.includes('calendar') ? 'calendar' : 'list');
   const [appointmentsList, setAppointmentsList] = useState([]);
   const [filter, setFilter] = useState('All');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRescheduling, setIsRescheduling] = useState(false);
+  const [rescheduleData, setRescheduleData] = useState({ date: '', timeSlot: '' });
+  
+  // Complete Consultation State
+  const [isCompleting, setIsCompleting] = useState(false);
+  const [completeData, setCompleteData] = useState({ doctorNote: '', followUpDate: '', sessionNumber: '', totalSessions: '' });
 
   const fetchAppointments = async () => {
     try {
@@ -25,6 +36,10 @@ const Appointments = () => {
     fetchAppointments();
   }, []);
 
+  useEffect(() => {
+    setViewMode(location.pathname.includes('calendar') ? 'calendar' : 'list');
+  }, [location.pathname]);
+
   const handleUpdateStatus = async (id, status) => {
     const actionText = status === 'confirmed' ? 'accept' : 'reject';
     if (!window.confirm(`Do you really want to ${actionText} this appointment?`)) {
@@ -32,15 +47,63 @@ const Appointments = () => {
     }
 
     try {
-      await api.put(`/appointments/${id}/status`, { status });
-      setAppointmentsList(prev => 
-        prev.map(app => app._id === id ? { ...app, status } : app)
-      );
+      if (status === 'confirmed') {
+        // Use the new accept endpoint
+        await api.patch(`/admin/appointments/${id}/accept`);
+      } else {
+        // Use the old status update for reject
+        await api.put(`/appointments/${id}/status`, { status });
+      }
+      
+      fetchAppointments(); // Refresh the whole list to get updated data (like payment links)
+      
       if (selectedAppointment && selectedAppointment._id === id) {
         setSelectedAppointment(prev => ({ ...prev, status }));
       }
     } catch (error) {
       console.error('Failed to update status', error);
+      alert(error.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  const handleCompleteSubmit = async () => {
+    try {
+      await api.patch(`/admin/appointments/${selectedAppointment._id}/complete`, completeData);
+      fetchAppointments();
+      setSelectedAppointment(prev => ({ ...prev, status: 'completed' }));
+      setIsCompleting(false);
+    } catch (error) {
+      console.error('Failed to complete', error);
+      alert('Failed to complete appointment');
+    }
+  };
+
+  const handleRescheduleSubmit = async () => {
+    if (!rescheduleData.date || !rescheduleData.timeSlot) {
+      alert("Please select both a new date and time slot.");
+      return;
+    }
+    
+    if (!window.confirm("Confirm rescheduling this appointment?")) return;
+
+    try {
+      const res = await api.put(`/appointments/${selectedAppointment._id}/status`, { 
+        status: 'rescheduled', 
+        date: rescheduleData.date, 
+        timeSlot: rescheduleData.timeSlot 
+      });
+      
+      const updatedApp = res.data.data;
+      
+      setAppointmentsList(prev => 
+        prev.map(app => app._id === updatedApp._id ? updatedApp : app)
+      );
+      
+      setSelectedAppointment(updatedApp);
+      setIsRescheduling(false);
+    } catch (error) {
+      console.error('Failed to reschedule', error);
+      alert('Failed to reschedule appointment.');
     }
   };
 
@@ -55,6 +118,7 @@ const Appointments = () => {
       confirmed: 'bg-emerald-100 text-emerald-700 border-emerald-200',
       completed: 'bg-slate-100 text-slate-700 border-slate-200',
       cancelled: 'bg-rose-100 text-rose-700 border-rose-200',
+      rescheduled: 'bg-indigo-100 text-indigo-700 border-indigo-200',
     };
     const style = config[status] || config.pending;
     return <span className={`px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${style}`}>{status}</span>;
@@ -74,31 +138,56 @@ const Appointments = () => {
           </p>
         </div>
         
-        {/* Modern Segmented Control for Filters */}
-        <div className="flex p-1 bg-slate-100/80 backdrop-blur-sm rounded-xl border border-slate-200/50 w-full sm:w-auto overflow-x-auto hide-scrollbar">
-          {['All', 'Pending', 'Confirmed', 'Completed', 'Cancelled'].map(f => (
-            <button 
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
-                filter === f 
-                  ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/50' 
-                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
-              }`}
-            >
-              {f}
-              {f === 'Pending' && appointmentsList.filter(a => a.status === 'pending').length > 0 && (
-                <span className="ml-2 inline-flex items-center justify-center bg-rose-500 text-white text-[10px] w-5 h-5 rounded-full font-bold">
-                  {appointmentsList.filter(a => a.status === 'pending').length}
-                </span>
-              )}
-            </button>
-          ))}
+        {/* View Toggles & Filters */}
+        <div className="flex flex-col sm:flex-row gap-4 items-center">
+          <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+             <button 
+               onClick={() => setViewMode('list')}
+               className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+             >
+               List View
+             </button>
+             <button 
+               onClick={() => setViewMode('calendar')}
+               className={`px-4 py-2 text-sm font-bold rounded-lg transition-all ${viewMode === 'calendar' ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+             >
+               Calendar View
+             </button>
+          </div>
+
+          {viewMode === 'list' && (
+            <div className="flex p-1 bg-slate-100/80 backdrop-blur-sm rounded-xl border border-slate-200/50 w-full sm:w-auto overflow-x-auto hide-scrollbar">
+              {['All', 'Pending', 'Confirmed', 'Rescheduled', 'Completed', 'Cancelled'].map(f => (
+                <button 
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`px-5 py-2.5 text-sm font-semibold rounded-lg transition-all whitespace-nowrap ${
+                    filter === f 
+                      ? 'bg-white text-emerald-700 shadow-sm border border-slate-200/50' 
+                      : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                  }`}
+                >
+                  {f}
+                  {f === 'Pending' && appointmentsList.filter(a => a.status === 'pending').length > 0 && (
+                    <span className="ml-2 inline-flex items-center justify-center bg-rose-500 text-white text-[10px] w-5 h-5 rounded-full font-bold">
+                      {appointmentsList.filter(a => a.status === 'pending').length}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Grid Content */}
-      {loading ? (
+      {/* Main Content Area */}
+      {viewMode === 'calendar' ? (
+         <CalendarView onSelectAppointment={(app) => {
+            setSelectedAppointment(app);
+            setIsRescheduling(false);
+            setIsCompleting(false);
+         }} />
+      ) : loading ? (
         <div className="flex flex-col items-center justify-center py-20 text-emerald-600">
           <Loader2 className="w-10 h-10 animate-spin mb-4" />
           <p className="text-slate-500 font-medium">Loading your schedule...</p>
@@ -119,7 +208,10 @@ const Appointments = () => {
                 key={app._id} 
                 appointment={app} 
                 onUpdateStatus={handleUpdateStatus} 
-                onViewDetails={() => setSelectedAppointment(app)} 
+                onViewDetails={() => {
+                  setSelectedAppointment(app);
+                  setIsRescheduling(false);
+                }}
               />
             ))
           )}
@@ -157,7 +249,11 @@ const Appointments = () => {
                 </div>
               </div>
               <button 
-                onClick={() => setSelectedAppointment(null)}
+                onClick={() => {
+                  setSelectedAppointment(null);
+                  setIsRescheduling(false);
+                  setIsCompleting(false);
+                }}
                 className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors absolute top-6 right-6"
               >
                 <X className="w-5 h-5" />
@@ -276,36 +372,152 @@ const Appointments = () => {
                     </a>
                   </div>
                 )}
+                {selectedAppointment.paymentLink && (
+                  <div className="mt-5 p-4 bg-emerald-50 rounded-xl border border-emerald-100/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-bold text-emerald-900">Payment Link Generated</p>
+                      <p className="text-xs text-emerald-700/80 mt-0.5">Status: {selectedAppointment.paymentStatus.toUpperCase()}</p>
+                    </div>
+                    <a 
+                      href={selectedAppointment.paymentLink} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors"
+                    >
+                      Open Payment Link
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Modal Footer Actions */}
             <div className="p-6 sm:px-8 border-t border-slate-100 bg-white flex flex-col sm:flex-row justify-end items-center gap-3 shrink-0">
-               {selectedAppointment.status === 'pending' && (
-                  <>
-                    <button 
-                      onClick={() => handleUpdateStatus(selectedAppointment._id, 'cancelled')}
-                      className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-600 transition-colors border border-slate-200 hover:border-rose-200"
+               {isCompleting ? (
+                  <div className="w-full flex flex-col gap-4 animate-fade-in-up">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-slate-500 mb-1 block">Doctor's Note</label>
+                        <textarea 
+                          className="w-full p-3 border border-slate-200 rounded-xl outline-none focus:border-indigo-500 h-24"
+                          placeholder="Prescription / Advice..."
+                          value={completeData.doctorNote}
+                          onChange={(e) => setCompleteData({...completeData, doctorNote: e.target.value})}
+                        ></textarea>
+                      </div>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs font-bold text-slate-500 mb-1 block">Next Follow-up Date (Optional)</label>
+                          <input 
+                            type="date"
+                            className="w-full p-2.5 border border-slate-200 rounded-xl outline-none focus:border-indigo-500"
+                            value={completeData.followUpDate}
+                            onChange={(e) => setCompleteData({...completeData, followUpDate: e.target.value})}
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="flex-1">
+                            <label className="text-[10px] font-bold text-slate-500 mb-1 block">Session #</label>
+                            <input type="number" className="w-full p-2 border border-slate-200 rounded-lg outline-none" placeholder="e.g. 1" value={completeData.sessionNumber} onChange={e => setCompleteData({...completeData, sessionNumber: e.target.value})} />
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-[10px] font-bold text-slate-500 mb-1 block">Total Sessions</label>
+                            <input type="number" className="w-full p-2 border border-slate-200 rounded-lg outline-none" placeholder="e.g. 7" value={completeData.totalSessions} onChange={e => setCompleteData({...completeData, totalSessions: e.target.value})} />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end gap-2 mt-2">
+                      <button onClick={() => setIsCompleting(false)} className="px-6 py-2.5 bg-slate-100 text-slate-700 rounded-xl font-bold">Cancel</button>
+                      <button onClick={handleCompleteSubmit} className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700">Submit & Complete</button>
+                    </div>
+                  </div>
+               ) : isRescheduling ? (
+                  <div className="w-full flex flex-col sm:flex-row items-center gap-3 animate-fade-in-up">
+                    <input 
+                      type="date" 
+                      className="w-full sm:w-auto px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      value={rescheduleData.date}
+                      onChange={(e) => setRescheduleData({...rescheduleData, date: e.target.value})}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                    <select 
+                      className="w-full sm:w-auto px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+                      value={rescheduleData.timeSlot}
+                      onChange={(e) => setRescheduleData({...rescheduleData, timeSlot: e.target.value})}
                     >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Reject Booking
-                    </button>
-                    <button 
-                      onClick={() => handleUpdateStatus(selectedAppointment._id, 'confirmed')}
-                      className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20 border border-transparent"
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Confirm Booking
-                    </button>
-                  </>
-               )}
-               {selectedAppointment.status !== 'pending' && (
-                  <button 
-                    onClick={() => setSelectedAppointment(null)}
-                    className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-8 py-3 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
-                  >
-                    Close
-                  </button>
+                      <option value="">Select Time</option>
+                      <option value="10:00 AM - 11:00 AM">10:00 AM - 11:00 AM</option>
+                      <option value="11:30 AM - 12:30 PM">11:30 AM - 12:30 PM</option>
+                      <option value="02:00 PM - 03:00 PM">02:00 PM - 03:00 PM</option>
+                      <option value="04:00 PM - 05:00 PM">04:00 PM - 05:00 PM</option>
+                      <option value="06:00 PM - 07:00 PM">06:00 PM - 07:00 PM</option>
+                    </select>
+                    
+                    <div className="flex w-full sm:w-auto gap-2 ml-auto">
+                      <button 
+                        onClick={() => setIsRescheduling(false)}
+                        className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-colors"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        onClick={handleRescheduleSubmit}
+                        className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 font-bold transition-colors shadow-lg shadow-indigo-600/20"
+                      >
+                        Confirm New Time
+                      </button>
+                    </div>
+                  </div>
+               ) : (
+                 <>
+                   {selectedAppointment.status === 'pending' && (
+                      <>
+                        <button 
+                          onClick={() => handleUpdateStatus(selectedAppointment._id, 'cancelled')}
+                          className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-600 transition-colors border border-slate-200 hover:border-rose-200"
+                        >
+                          <XCircle className="w-4 h-4 mr-2" />
+                          Reject Booking
+                        </button>
+                        <button 
+                          onClick={() => setIsRescheduling(true)}
+                          className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-white text-indigo-600 hover:bg-indigo-50 transition-colors border border-indigo-200"
+                        >
+                          <Clock className="w-4 h-4 mr-2" />
+                          Reschedule
+                        </button>
+                        <button 
+                          onClick={() => handleUpdateStatus(selectedAppointment._id, 'confirmed')}
+                          className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-600/20 border border-transparent"
+                        >
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Confirm Booking
+                        </button>
+                      </>
+                   )}
+                   {(selectedAppointment.status === 'confirmed' || selectedAppointment.status === 'rescheduled') && (
+                      <button 
+                        onClick={() => setIsCompleting(true)}
+                        className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+                      >
+                        <Activity className="w-4 h-4 mr-2" />
+                        Complete Consultation
+                      </button>
+                   )}
+                   {selectedAppointment.status !== 'pending' && (
+                      <button 
+                        onClick={() => {
+                          setSelectedAppointment(null);
+                          setIsRescheduling(false);
+                          setIsCompleting(false);
+                        }}
+                        className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-8 py-3 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                      >
+                        Close
+                      </button>
+                   )}
+                 </>
                )}
             </div>
           </div>

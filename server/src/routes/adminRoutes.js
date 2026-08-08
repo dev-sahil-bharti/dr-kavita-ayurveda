@@ -17,4 +17,22 @@ router.put('/changepassword/:id', auth, changePassword);
 // Get current logged-in admin's profile
 router.get('/profile', auth, require('../controllers/adminAuthController').getMyProfile);
 
+// ==========================================
+// Admin Appointment Management Routes
+// ==========================================
+const {
+  acceptAppointment,
+  getCalendarAppointments,
+  checkInAppointment,
+  completeAppointment
+} = require('../controllers/appointmentController');
+
+// Calendar (Make sure this comes before /:id routes to prevent 'calendar' being interpreted as an id)
+router.get('/appointments/calendar', auth, getCalendarAppointments);
+
+// Appointment Actions
+router.patch('/appointments/:id/accept', auth, acceptAppointment);
+router.patch('/appointments/:id/checkin', auth, checkInAppointment);
+router.patch('/appointments/:id/complete', auth, completeAppointment);
+
 module.exports = router;

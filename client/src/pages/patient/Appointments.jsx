@@ -9,26 +9,69 @@ const Appointments = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetchAppointments();
+    fetchAppointments(); // Initial fetch
+    
+    // Set up polling for real-time status updates
+    const interval = setInterval(() => {
+      fetchAppointments(true); // Silent fetch
+    }, 10000); // Every 10 seconds
+    
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = async (silent = false) => {
     try {
+      if (!silent) setLoading(true);
       const { data } = await api.get('/appointments/my-appointments');
       setAppointments(data.data || []);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load appointments.');
+      if (!silent) setError(err.response?.data?.message || 'Failed to load appointments.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   const getStatusBadge = (status) => {
     switch(status) {
-      case 'pending': return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider border border-yellow-200">Pending</span>;
-      case 'confirmed': return <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider border border-emerald-200">Confirmed</span>;
-      case 'completed': return <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-200">Completed</span>;
-      case 'cancelled': return <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold uppercase tracking-wider border border-red-200">Cancelled</span>;
+      case 'pending': return (
+        <span className="group inline-flex items-center px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-yellow-200 shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md hover:shadow-yellow-100">
+          <span className="relative flex h-2 w-2 mr-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+          </span>
+          Pending
+        </span>
+      );
+      case 'confirmed': return (
+        <span className="group inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-200 shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md hover:shadow-emerald-100">
+          <span className="relative flex h-2 w-2 mr-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          Confirmed
+        </span>
+      );
+      case 'completed': return (
+        <span className="group inline-flex items-center px-3 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-200 shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <CheckCircle className="w-3 h-3 mr-1.5 text-blue-600 transition-transform duration-300 group-hover:rotate-12" />
+          Completed
+        </span>
+      );
+      case 'cancelled': return (
+        <span className="group inline-flex items-center px-3 py-1 bg-red-50 text-red-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-red-200 shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md">
+          <XCircle className="w-3 h-3 mr-1.5 text-red-600 transition-transform duration-300 group-hover:rotate-90" />
+          Cancelled
+        </span>
+      );
+      case 'rescheduled': return (
+        <span className="group inline-flex items-center px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-200 shadow-sm transition-all duration-300 hover:scale-105 hover:shadow-md hover:shadow-indigo-100">
+          <span className="relative flex h-2 w-2 mr-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
+          </span>
+          Rescheduled
+        </span>
+      );
       default: return null;
     }
   };
@@ -86,13 +129,36 @@ const Appointments = () => {
                   </div>
                   <div className="flex items-center text-sm text-slate-600">
                     <Clock className="h-4 w-4 mr-2 text-slate-400" />
-                    Standard Timing
+                    {app.timeSlot || 'Standard Timing'}
                   </div>
                 </div>
                 
                 {app.message && (
                   <div className="mt-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600 border border-slate-100 italic">
                     "{app.message}"
+                  </div>
+                )}
+
+                {/* Consultation Details (If Completed) */}
+                {app.status === 'completed' && (app.doctorNote || app.sessionNumber) && (
+                  <div className="mt-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100">
+                    {app.sessionNumber && app.totalSessions && (
+                      <div className="mb-3">
+                        <div className="flex justify-between text-xs font-bold text-blue-800 mb-1">
+                          <span>Therapy Progress</span>
+                          <span>Session {app.sessionNumber} / {app.totalSessions}</span>
+                        </div>
+                        <div className="w-full bg-blue-100 rounded-full h-2">
+                          <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(app.sessionNumber / app.totalSessions) * 100}%` }}></div>
+                        </div>
+                      </div>
+                    )}
+                    {app.doctorNote && (
+                      <div>
+                        <p className="text-[10px] font-bold text-blue-800 uppercase tracking-wider mb-1">Doctor's Note</p>
+                        <p className="text-sm text-slate-700">{app.doctorNote}</p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -104,9 +170,9 @@ const Appointments = () => {
                     Cancel Appointment
                   </button>
                 ) : (
-                  <span className="text-sm font-medium text-slate-400 flex items-center">
-                    <CheckCircle className="w-4 h-4 mr-1.5" />
-                    Processed
+                  <span className="text-sm font-bold text-slate-600 flex items-center capitalize">
+                    <CheckCircle className="w-4 h-4 mr-1.5 text-emerald-500" />
+                    Status: {app.status}
                   </span>
                 )}
               </div>

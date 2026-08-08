@@ -13,6 +13,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: 'Appointments', icon: Calendar, path: '/admin/appointments' },
     { name: 'Therapies', icon: Activity, path: '/admin/therapies' },
     { name: 'Inquiries', icon: Mail, path: '/admin/inquiries' },
+    { name: 'Appointment Calendar', icon: Calendar, path: '/admin/appointment-calendar' },
     { name: 'Settings', icon: Settings, path: '/admin/profile' },
   ];
 

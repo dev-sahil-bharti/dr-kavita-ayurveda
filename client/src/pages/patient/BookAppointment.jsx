@@ -7,14 +7,14 @@ import { useNavigate } from 'react-router-dom';
 const BookAppointment = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  
+
   const [formData, setFormData] = useState({
     patientName: '',
     mobile: '',
     email: '',
     gender: '',
-    consultationType: 'In-person',
-    preferredService: 'General Consultation',
+    consultationType: '',
+    preferredService: '',
     age: '',
     occupation: '',
     urgency: 'Standard',
@@ -28,6 +28,47 @@ const BookAppointment = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  // OTP State
+  const [otpSent, setOtpSent] = useState(false);
+  const [otpVerified, setOtpVerified] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+
+  const handleSendOtp = async () => {
+    if (!formData.mobile) {
+      setError('Please enter a mobile number first.');
+      return;
+    }
+    setOtpLoading(true);
+    setError('');
+    try {
+      await api.post('/otp/send', { mobile: formData.mobile });
+      setOtpSent(true);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to send OTP.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otpCode) {
+      setError('Please enter the OTP.');
+      return;
+    }
+    setOtpLoading(true);
+    setError('');
+    try {
+      await api.post('/otp/verify', { mobile: formData.mobile, otp: otpCode });
+      setOtpVerified(true);
+      setError('');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid OTP.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
 
   // Pre-fill user data if available
   useEffect(() => {
@@ -69,7 +110,7 @@ const BookAppointment = () => {
           'Content-Type': 'multipart/form-data'
         }
       });
-      
+
       setSuccess('Appointment booked successfully! We will see you soon.');
       setTimeout(() => navigate('/patient/appointments'), 2000);
     } catch (err) {
@@ -85,14 +126,14 @@ const BookAppointment = () => {
   return (
     <div className="max-w-4xl mx-auto py-8 sm:py-12 px-4 sm:px-6 font-sans">
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 overflow-hidden transition-all duration-300">
-        
+
         {/* Header Section */}
         <div className="bg-gradient-to-r from-emerald-800 via-emerald-700 to-emerald-600 px-8 py-12 sm:px-12 text-white relative overflow-hidden">
           {/* Decorative background elements */}
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-emerald-400 opacity-20 blur-3xl pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-emerald-900 opacity-20 blur-3xl pointer-events-none"></div>
           <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
-          
+
           <div className="relative z-10">
             <h2 className="text-3xl sm:text-4xl font-extrabold flex items-center tracking-tight">
               <Calendar className="mr-4 h-10 w-10 text-emerald-200" />
@@ -103,7 +144,7 @@ const BookAppointment = () => {
             </p>
           </div>
         </div>
-        
+
         {/* Form Section */}
         <div className="p-8 sm:p-12 bg-slate-50/30">
           {error && (
@@ -118,9 +159,9 @@ const BookAppointment = () => {
               <p className="font-medium">{success}</p>
             </div>
           )}
-          
+
           <form onSubmit={handleSubmit} className="space-y-12">
-            
+
             {/* --- Personal Details Section --- */}
             <div className="space-y-6 relative">
               <div className="flex items-center space-x-3 mb-6">
@@ -129,7 +170,7 @@ const BookAppointment = () => {
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 tracking-tight">Patient Details</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                 {/* Patient Name */}
                 <div className="group">
@@ -153,20 +194,59 @@ const BookAppointment = () => {
                 {/* Mobile Number */}
                 <div className="group">
                   <label className="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Mobile Number</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Phone className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                      </div>
+                      <input
+                        type="tel"
+                        name="mobile"
+                        required
+                        value={formData.mobile}
+                        onChange={handleChange}
+                        disabled={otpVerified || otpSent}
+                        className={`${inputClassName} disabled:opacity-70 disabled:cursor-not-allowed`}
+                        placeholder="e.g. +91 9876543210"
+                      />
                     </div>
-                    <input
-                      type="tel"
-                      name="mobile"
-                      required
-                      value={formData.mobile}
-                      onChange={handleChange}
-                      className={inputClassName}
-                      placeholder="e.g. +91 9876543210"
-                    />
+                    {!otpVerified && (
+                      <button
+                        type="button"
+                        onClick={handleSendOtp}
+                        disabled={otpLoading || !formData.mobile}
+                        className="whitespace-nowrap px-4 py-3 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                      >
+                        {otpSent ? 'Resend' : 'Get OTP'}
+                      </button>
+                    )}
                   </div>
+                  
+                  {otpSent && !otpVerified && (
+                    <div className="mt-3 flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        value={otpCode}
+                        onChange={(e) => setOtpCode(e.target.value)}
+                        className={`${inputClassName} flex-1`}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleVerifyOtp}
+                        disabled={otpLoading || !otpCode}
+                        className="whitespace-nowrap px-4 py-3 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed"
+                      >
+                        Verify
+                      </button>
+                    </div>
+                  )}
+                  {otpVerified && (
+                     <p className="mt-1.5 ml-1 text-xs text-emerald-600 font-semibold flex items-center">
+                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                       Mobile number verified
+                     </p>
+                  )}
                 </div>
 
                 {/* Email (Optional) */}
@@ -227,9 +307,9 @@ const BookAppointment = () => {
                 </div>
                 <h3 className="text-xl font-bold text-slate-800 tracking-tight">Appointment Details</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-                
+
                 {/* Consultation Type */}
                 <div className="group relative">
                   <label className="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Consultation Type</label>
@@ -242,7 +322,9 @@ const BookAppointment = () => {
                       value={formData.consultationType}
                       onChange={handleChange}
                       className={selectClassName}
+                      required
                     >
+                      <option value="" disabled>Select Consultation Type</option>
                       <option value="In-person">In-person Visit</option>
                       <option value="Online">Online Video Consultation</option>
                     </select>
@@ -264,7 +346,9 @@ const BookAppointment = () => {
                       value={formData.preferredService}
                       onChange={handleChange}
                       className={selectClassName}
+                      required
                     >
+                      <option value="" disabled>Select Preferred Service</option>
                       <option value="General Consultation">General Consultation</option>
                       <option value="Nadi Pariksha">Nadi Pariksha</option>
                       <option value="Panchkarma">Panchkarma</option>
@@ -386,24 +470,41 @@ const BookAppointment = () => {
                   </div>
                 </div>
 
-                {/* First Visit? - Segmented Control Style */}
+                {/* First Visit? - Checkbox Style */}
                 <div className="md:col-span-2 mt-2">
                   <label className="block text-sm font-bold text-slate-700 mb-3 ml-1">Is this your first visit to Dr. Kavita Ayurveda?</label>
-                  <div className="flex bg-slate-100 p-1.5 rounded-xl sm:w-80">
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, isFirstVisit: 'Yes' })}
-                      className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${formData.isFirstVisit === 'Yes' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      Yes, first time
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({ ...formData, isFirstVisit: 'No' })}
-                      className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${formData.isFirstVisit === 'No' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                    >
-                      No, returning
-                    </button>
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 flex-1 ${formData.isFirstVisit === 'Yes' ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 hover:border-slate-300 bg-white'}`}>
+                      <div className={`flex items-center justify-center w-6 h-6 rounded-md border-2 mr-3 transition-colors duration-200 shadow-sm ${formData.isFirstVisit === 'Yes' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 bg-white'}`}>
+                        <svg className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${formData.isFirstVisit === 'Yes' ? 'scale-100' : 'scale-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <input
+                        type="radio"
+                        name="isFirstVisit"
+                        className="hidden"
+                        checked={formData.isFirstVisit === 'Yes'}
+                        onChange={() => setFormData({ ...formData, isFirstVisit: 'Yes' })}
+                      />
+                      <span className={`font-semibold ${formData.isFirstVisit === 'Yes' ? 'text-emerald-800' : 'text-slate-600'}`}>Yes, first time</span>
+                    </label>
+
+                    <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 flex-1 ${formData.isFirstVisit === 'No' ? 'border-emerald-500 bg-emerald-50/50' : 'border-slate-200 hover:border-slate-300 bg-white'}`}>
+                      <div className={`flex items-center justify-center w-6 h-6 rounded-md border-2 mr-3 transition-colors duration-200 shadow-sm ${formData.isFirstVisit === 'No' ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 bg-white'}`}>
+                        <svg className={`w-3.5 h-3.5 text-white transition-transform duration-200 ${formData.isFirstVisit === 'No' ? 'scale-100' : 'scale-0'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <input
+                        type="radio"
+                        name="isFirstVisit"
+                        className="hidden"
+                        checked={formData.isFirstVisit === 'No'}
+                        onChange={() => setFormData({ ...formData, isFirstVisit: 'No' })}
+                      />
+                      <span className={`font-semibold ${formData.isFirstVisit === 'No' ? 'text-emerald-800' : 'text-slate-600'}`}>No, returning</span>
+                    </label>
                   </div>
                 </div>
 
@@ -457,8 +558,8 @@ const BookAppointment = () => {
             <div className="pt-4 border-t border-slate-100">
               <button
                 type="submit"
-                disabled={loading}
-                className="w-full sm:w-auto sm:min-w-[240px] float-right bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-600/30 flex items-center justify-center disabled:opacity-70 transform hover:-translate-y-0.5"
+                disabled={loading || !otpVerified}
+                className="w-full sm:w-auto sm:min-w-[240px] float-right bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-600/30 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
               >
                 {loading ? 'Processing...' : (
                   <>
