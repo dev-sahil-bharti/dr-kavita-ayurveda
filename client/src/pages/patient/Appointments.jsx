@@ -1,0 +1,121 @@
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
+import { Calendar as CalendarIcon, Clock, Activity, CheckCircle, XCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+const Appointments = () => {
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const fetchAppointments = async () => {
+    try {
+      const { data } = await api.get('/appointments/my-appointments');
+      setAppointments(data.data || []);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load appointments.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    switch(status) {
+      case 'pending': return <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold uppercase tracking-wider border border-yellow-200">Pending</span>;
+      case 'confirmed': return <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-bold uppercase tracking-wider border border-emerald-200">Confirmed</span>;
+      case 'completed': return <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-bold uppercase tracking-wider border border-blue-200">Completed</span>;
+      case 'cancelled': return <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-bold uppercase tracking-wider border border-red-200">Cancelled</span>;
+      default: return null;
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-end">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">My Appointments</h1>
+          <p className="text-sm text-slate-500 mt-1">View and track your booking history.</p>
+        </div>
+        <Link to="/patient/book" className="hidden sm:flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors shadow-sm">
+          <CalendarIcon className="h-4 w-4 mr-2" />
+          Book New
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 text-red-700 p-4 rounded-xl border border-red-200">{error}</div>
+      ) : appointments.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 text-center">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CalendarIcon className="h-8 w-8 text-slate-400" />
+          </div>
+          <h3 className="text-lg font-bold text-slate-800 mb-2">No Appointments Yet</h3>
+          <p className="text-slate-500 mb-6">You haven't booked any therapies with us yet.</p>
+          <Link to="/patient/book" className="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold transition-colors shadow-sm">
+            Book Your First Appointment
+          </Link>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {appointments.map((app) => (
+            <div key={app._id} className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden flex flex-col">
+              <div className="p-6 flex-grow">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
+                    <CalendarIcon className="h-6 w-6" />
+                  </div>
+                  {getStatusBadge(app.status)}
+                </div>
+                
+                <h3 className="text-xl font-bold text-slate-800 mb-1">{app.therapy}</h3>
+                
+                <div className="space-y-2 mt-4">
+                  <div className="flex items-center text-sm text-slate-600">
+                    <CalendarIcon className="h-4 w-4 mr-2 text-slate-400" />
+                    <span className="font-medium text-slate-700">
+                      {new Date(app.date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm text-slate-600">
+                    <Clock className="h-4 w-4 mr-2 text-slate-400" />
+                    Standard Timing
+                  </div>
+                </div>
+                
+                {app.message && (
+                  <div className="mt-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600 border border-slate-100 italic">
+                    "{app.message}"
+                  </div>
+                )}
+              </div>
+              
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                {app.status === 'pending' ? (
+                  <button className="text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center">
+                    <XCircle className="w-4 h-4 mr-1.5" />
+                    Cancel Appointment
+                  </button>
+                ) : (
+                  <span className="text-sm font-medium text-slate-400 flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-1.5" />
+                    Processed
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Appointments;
