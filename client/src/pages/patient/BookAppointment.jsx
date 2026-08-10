@@ -29,46 +29,7 @@ const BookAppointment = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // OTP State
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
-  const [otpLoading, setOtpLoading] = useState(false);
 
-  const handleSendOtp = async () => {
-    if (!formData.mobile) {
-      setError('Please enter a mobile number first.');
-      return;
-    }
-    setOtpLoading(true);
-    setError('');
-    try {
-      await api.post('/otp/send', { mobile: formData.mobile });
-      setOtpSent(true);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send OTP.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otpCode) {
-      setError('Please enter the OTP.');
-      return;
-    }
-    setOtpLoading(true);
-    setError('');
-    try {
-      await api.post('/otp/verify', { mobile: formData.mobile, otp: otpCode });
-      setOtpVerified(true);
-      setError('');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Invalid OTP.');
-    } finally {
-      setOtpLoading(false);
-    }
-  };
 
   // Pre-fill user data if available
   useEffect(() => {
@@ -194,64 +155,26 @@ const BookAppointment = () => {
                 {/* Mobile Number */}
                 <div className="group">
                   <label className="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Mobile Number</label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Phone className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-                      </div>
-                      <input
-                        type="tel"
-                        name="mobile"
-                        required
-                        value={formData.mobile}
-                        onChange={handleChange}
-                        disabled={otpVerified || otpSent}
-                        className={`${inputClassName} disabled:opacity-70 disabled:cursor-not-allowed`}
-                        placeholder="e.g. +91 9876543210"
-                      />
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
                     </div>
-                    {!otpVerified && (
-                      <button
-                        type="button"
-                        onClick={handleSendOtp}
-                        disabled={otpLoading || !formData.mobile}
-                        className="whitespace-nowrap px-4 py-3 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed"
-                      >
-                        {otpSent ? 'Resend' : 'Get OTP'}
-                      </button>
-                    )}
+                    <input
+                      type="tel"
+                      name="mobile"
+                      required
+                      value={formData.mobile}
+                      onChange={handleChange}
+                      readOnly={!!user}
+                      className={`${inputClassName} ${user ? 'opacity-70 cursor-not-allowed bg-slate-100' : ''}`}
+                      placeholder="e.g. +91 9876543210"
+                    />
                   </div>
-                  
-                  {otpSent && !otpVerified && (
-                    <div className="mt-3 flex gap-2">
-                      <input
-                        type="text"
-                        placeholder="Enter 6-digit OTP"
-                        value={otpCode}
-                        onChange={(e) => setOtpCode(e.target.value)}
-                        className={`${inputClassName} flex-1`}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleVerifyOtp}
-                        disabled={otpLoading || !otpCode}
-                        className="whitespace-nowrap px-4 py-3 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed"
-                      >
-                        Verify
-                      </button>
-                    </div>
-                  )}
-                  {otpVerified && (
-                     <p className="mt-1.5 ml-1 text-xs text-emerald-600 font-semibold flex items-center">
-                       <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                       Mobile number verified
-                     </p>
-                  )}
                 </div>
 
                 {/* Email (Optional) */}
                 <div className="group">
-                  <label className="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Email Address <span className="text-slate-400 font-normal">(Optional)</span></label>
+                  <label className="block text-sm font-bold text-slate-700 mb-2.5 ml-1">Email Address </label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <Mail className="h-5 w-5 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
@@ -261,7 +184,8 @@ const BookAppointment = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={inputClassName}
+                      readOnly={!!user}
+                      className={`${inputClassName} ${user ? 'opacity-70 cursor-not-allowed bg-slate-100' : ''}`}
                       placeholder="your.email@example.com"
                     />
                   </div>
@@ -558,7 +482,7 @@ const BookAppointment = () => {
             <div className="pt-4 border-t border-slate-100">
               <button
                 type="submit"
-                disabled={loading || !otpVerified}
+                disabled={loading}
                 className="w-full sm:w-auto sm:min-w-[240px] float-right bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-bold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg shadow-emerald-600/30 flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
               >
                 {loading ? 'Processing...' : (

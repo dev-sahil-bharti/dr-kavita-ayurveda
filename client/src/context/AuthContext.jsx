@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('role', loginRole);
     
     setRole(loginRole);
-    setUser({ id: data._id, name: data.name, email: data.email });
+    setUser({ id: data._id, name: data.name, email: data.email, mobile: data.mobile });
     return data;
   };
 
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('role', 'patient');
     
     setRole('patient');
-    setUser({ id: data._id, name: data.name, email: data.email });
+    setUser({ id: data._id, name: data.name, email: data.email, mobile: data.mobile });
     return data;
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Search, Filter, Eye, Trash2, CheckCircle, Download } from 'lucide-react';
+import { Search, Eye, Trash2, Download } from 'lucide-react';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 
 const Inquiries = () => {
   const [inquiries, setInquiries] = useState([]);
@@ -8,6 +9,8 @@ const Inquiries = () => {
   const [selectedInquiry, setSelectedInquiry] = useState(null);
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedIds, setSelectedIds] = useState([]);
+  
+  const [actionConfirm, setActionConfirm] = useState({ type: null, id: null }); // type: 'delete' | 'resolve'
 
   // Fetch inquiries on mount
   useEffect(() => {
@@ -20,34 +23,44 @@ const Inquiries = () => {
       setInquiries(data.data || []);
     } catch (error) {
       console.error('Error fetching inquiries:', error);
+      toast.error('Failed to load inquiries');
     } finally {
       setLoading(false);
     }
   };
 
   const handleResolve = async (id) => {
-    if (!window.confirm('Do you really want to approve this inquiry?')) return;
     try {
       await api.patch(`/inquiries/${id}/status`, { status: 'resolved' });
       setInquiries(inquiries.map(inq => 
         inq._id === id ? { ...inq, status: 'resolved' } : inq
       ));
+      toast.success('Inquiry marked as resolved');
     } catch (error) {
       console.error('Error resolving inquiry:', error);
-      alert('Failed to resolve inquiry');
+      toast.error('Failed to resolve inquiry');
     }
+    setActionConfirm({ type: null, id: null });
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Do you really want to delete this inquiry?')) return;
-    
     try {
       await api.delete(`/inquiries/${id}`);
       setInquiries(inquiries.filter(inq => inq._id !== id));
       setSelectedIds(selectedIds.filter(selectedId => selectedId !== id)); // Remove from selection if deleted
+      toast.success('Inquiry deleted');
     } catch (error) {
       console.error('Error deleting inquiry:', error);
-      alert('Failed to delete inquiry');
+      toast.error('Failed to delete inquiry');
+    }
+    setActionConfirm({ type: null, id: null });
+  };
+
+  const executeAction = () => {
+    if (actionConfirm.type === 'delete') {
+      handleDelete(actionConfirm.id);
+    } else if (actionConfirm.type === 'resolve') {
+      handleResolve(actionConfirm.id);
     }
   };
 
@@ -74,7 +87,10 @@ const Inquiries = () => {
       ? inquiries.filter(inq => selectedIds.includes(inq._id))
       : filteredInquiries;
 
-    if (!dataToExport.length) return alert('No inquiries to export');
+    if (!dataToExport.length) {
+      toast.error('No inquiries to export');
+      return;
+    }
     
     const headers = ['Date', 'Name', 'Email', 'Contact No', 'Subject', 'Message', 'Status'];
     const rows = dataToExport.map(inq => [
@@ -97,6 +113,7 @@ const Inquiries = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    toast.success('Export started');
   };
 
   return (
@@ -217,7 +234,7 @@ const Inquiries = () => {
                           <Eye className="h-3.5 w-3.5" />
                         </button>
                         <button 
-                          onClick={() => handleDelete(inq._id)}
+                          onClick={() => setActionConfirm({ type: 'delete', id: inq._id })}
                           className="text-red-500 hover:text-red-700 transition-colors bg-red-50 p-1.5 rounded-full" 
                           title="Delete"
                         >
@@ -236,15 +253,46 @@ const Inquiries = () => {
         </div>
       </div>
 
+      {/* Action Confirmation Modal */}
+      {actionConfirm.type && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in-up">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col p-6 border border-slate-100">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">
+              Confirm {actionConfirm.type === 'delete' ? 'Deletion' : 'Resolution'}
+            </h3>
+            <p className="text-slate-500 mb-6">
+              Are you sure you want to {actionConfirm.type} this inquiry? 
+              {actionConfirm.type === 'delete' && " This action cannot be undone."}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button 
+                onClick={() => setActionConfirm({ type: null, id: null })}
+                className="px-4 py-2 font-bold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeAction}
+                className={`px-4 py-2 font-bold text-white rounded-lg transition-colors ${
+                  actionConfirm.type === 'delete' ? 'bg-rose-600 hover:bg-rose-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Inquiry Details Modal */}
       {selectedInquiry && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-tertiary/50 p-4">
-          <div className="bg-white rounded-xs shadow-3 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-text-inverse/20 flex justify-between items-center bg-slate-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-text-tertiary/50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-fade-in-up">
+            <div className="p-6 border-b border-text-inverse/10 flex justify-between items-center bg-slate-50">
               <h2 className="text-xl font-bold text-text-primary">Inquiry Details</h2>
               <button 
                 onClick={() => setSelectedInquiry(null)}
-                className="text-text-inverse hover:text-text-primary focus-visible:outline-none"
+                className="w-8 h-8 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full transition-colors focus-visible:outline-none"
               >
                 ✕
               </button>
@@ -274,25 +322,25 @@ const Inquiries = () => {
               </div>
               <div>
                 <label className="block text-xs font-bold text-text-inverse uppercase tracking-wider mb-1">Message</label>
-                <div className="p-4 bg-slate-50 rounded-sm border border-text-inverse/10 text-text-primary whitespace-pre-wrap">
+                <div className="p-4 bg-slate-50 rounded-lg border border-text-inverse/10 text-text-primary whitespace-pre-wrap text-sm leading-relaxed">
                   {selectedInquiry.message}
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-text-inverse/20 flex justify-end space-x-4 bg-slate-50">
+            <div className="p-6 border-t border-text-inverse/10 flex justify-end space-x-4 bg-slate-50">
               <button 
                 onClick={() => setSelectedInquiry(null)}
-                className="px-6 py-2 border border-text-inverse/30 rounded-sm text-text-secondary font-bold hover:bg-text-inverse/5"
+                className="px-6 py-2.5 border border-slate-200 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors"
               >
                 Close
               </button>
               {selectedInquiry.status !== 'resolved' && (
                 <button 
                   onClick={() => {
-                    handleResolve(selectedInquiry._id);
-                    setSelectedInquiry(null);
+                    setActionConfirm({ type: 'resolve', id: selectedInquiry._id });
+                    setSelectedInquiry(null); // Close details modal when opening confirm
                   }}
-                  className="px-6 py-2 bg-green-600 text-white rounded-sm font-bold hover:bg-green-700"
+                  className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors shadow-sm"
                 >
                   Mark as Resolved
                 </button>

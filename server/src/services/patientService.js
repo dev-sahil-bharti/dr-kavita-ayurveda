@@ -69,7 +69,7 @@ exports.updatePatientProfile = async (id, data) => {
   }
 
   // Update fields
-  const updatableFields = ['name', 'mobile', 'email', 'gender', 'dob', 'address', 'profilePhoto', 'healthConditions', 'currentMedications', 'consultationType', 'referredBy', 'password'];
+  const updatableFields = ['name', 'mobile', 'email', 'gender', 'dob', 'address', 'profilePhoto', 'healthConditions', 'currentMedications', 'consultationType', 'referredBy', 'password', 'status'];
   
   updatableFields.forEach((field) => {
     if (data[field] !== undefined) {

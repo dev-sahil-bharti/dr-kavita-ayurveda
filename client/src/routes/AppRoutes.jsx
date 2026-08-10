@@ -12,6 +12,7 @@ import AdminTherapies from '../pages/admin/Therapies';
 import AdminLogin from '../pages/admin/Login';
 import AdminProfile from '../pages/admin/Profile';
 import AdminInquiries from '../pages/admin/Inquery';
+import AdminSettings from '../pages/admin/Setting';
 
 import PatientLogin from '../pages/patient/Login';
 import PatientRegister from '../pages/patient/Register';
@@ -121,6 +122,7 @@ const AppRoutes = () => {
       <Route path="/admin/appointment-calendar" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminAppointments /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/therapies" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminTherapies /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/inquiries" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminInquiries /></AdminLayout></ProtectedRoute>} />
+      <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
       <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminProfile /></AdminLayout></ProtectedRoute>} />
 
       {/* FALLBACK ROUTE */}

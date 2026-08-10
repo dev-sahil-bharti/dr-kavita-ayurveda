@@ -1,25 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, Activity, TrendingUp, UserPlus } from 'lucide-react';
+import { Users, Calendar, Activity, TrendingUp } from 'lucide-react';
 import AppointmentCard from '../../components/admin/AppointmentCard';
 import api from '../../services/api';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
-  const [patientsCount, setPatientsCount] = useState(0);
-  const [appointments, setAppointments] = useState([]);
+  const [statsData, setStatsData] = useState({
+    totalPatients: 0,
+    totalAppointments: 0,
+    pendingAppointments: 0,
+    appointmentsToday: 0,
+    recentAppointments: []
+  });
   
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Fetch data simultaneously
-        const [patientsRes, appointmentsRes] = await Promise.all([
-          api.get('/patient'),
-          api.get('/appointments/all')
-        ]);
-        
-        setPatientsCount(patientsRes.data?.length || 0);
-        setAppointments(appointmentsRes.data?.data || []);
+        const res = await api.get('/admin/dashboard-stats');
+        setStatsData(res.data.data);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
       } finally {
@@ -30,20 +29,11 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  const todayStr = new Date().toLocaleDateString();
-  
-  const appointmentsToday = appointments.filter(app => 
-    new Date(app.date).toLocaleDateString() === todayStr
-  );
-  
-  const pendingAppointments = appointments.filter(app => app.status === 'pending');
-  const recentAppointments = appointments.slice(0, 3); // top 3 most recent
-
   const stats = [
-    { title: 'Total Patients', value: loading ? '...' : patientsCount, icon: Users, color: 'text-surface-strong', bg: 'bg-surface-strong/10' },
-    { title: 'Appointments Today', value: loading ? '...' : appointmentsToday.length, icon: Calendar, color: 'text-surface-muted', bg: 'bg-surface-muted/10' },
-    { title: 'Pending Approvals', value: loading ? '...' : pendingAppointments.length, icon: Activity, color: 'text-text-primary', bg: 'bg-text-inverse/10' },
-    { title: 'Total Appointments', value: loading ? '...' : appointments.length, icon: TrendingUp, color: 'text-surface-strong', bg: 'bg-surface-strong/10' },
+    { title: 'Total Patients', value: loading ? '...' : statsData.totalPatients, icon: Users, color: 'text-surface-strong', bg: 'bg-surface-strong/10' },
+    { title: 'Appointments Today', value: loading ? '...' : statsData.appointmentsToday, icon: Calendar, color: 'text-surface-muted', bg: 'bg-surface-muted/10' },
+    { title: 'Pending Approvals', value: loading ? '...' : statsData.pendingAppointments, icon: Activity, color: 'text-text-primary', bg: 'bg-text-inverse/10' },
+    { title: 'Total Appointments', value: loading ? '...' : statsData.totalAppointments, icon: TrendingUp, color: 'text-surface-strong', bg: 'bg-surface-strong/10' },
   ];
 
   return (
@@ -58,7 +48,7 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-xs p-6 shadow-3 border border-text-inverse/20 flex items-center">
+          <div key={index} className="bg-white rounded-xs p-6 shadow-3 border border-text-inverse/20 flex items-center hover:shadow-lg transition-shadow">
             <div className={`p-4 rounded-sm ${stat.bg} mr-4`}>
               <stat.icon className={`h-6 w-6 ${stat.color}`} />
             </div>
@@ -78,9 +68,12 @@ const Dashboard = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {loading ? (
-              <p className="text-text-inverse col-span-2">Loading appointments...</p>
-            ) : recentAppointments.length > 0 ? (
-              recentAppointments.map(apt => (
+              <p className="text-text-inverse col-span-2 flex items-center gap-2">
+                 <span className="w-5 h-5 border-2 border-surface-muted border-t-transparent rounded-full animate-spin"></span>
+                 Loading appointments...
+              </p>
+            ) : statsData.recentAppointments.length > 0 ? (
+              statsData.recentAppointments.map(apt => (
                 <AppointmentCard key={apt._id} appointment={apt} onUpdateStatus={() => {}} onViewDetails={() => {}} />
               ))
             ) : (
@@ -93,17 +86,17 @@ const Dashboard = () => {
         <div className="bg-white rounded-xs shadow-3 border border-text-inverse/20 p-6">
           <h2 className="text-2xl font-bold text-text-primary mb-6">Recent Activity</h2>
           <div className="space-y-4">
-            {!loading && appointments.slice(0, 3).map((app, index) => (
-              <div key={index} className="flex items-start">
-                <div className="h-2 w-2 mt-2 rounded-sm bg-surface-muted mr-3 shrink-0"></div>
+            {!loading && statsData.recentAppointments.map((app, index) => (
+              <div key={index} className="flex items-start bg-slate-50 p-3 rounded-lg border border-slate-100 hover:border-slate-200 transition-colors">
+                <div className="h-2 w-2 mt-2 rounded-sm bg-surface-muted mr-3 shrink-0 shadow-sm"></div>
                 <div>
-                  <p className="text-sm text-text-primary font-bold">New {app.therapy} booked</p>
-                  <p className="text-xs text-text-inverse">Status: {app.status}</p>
+                  <p className="text-sm text-text-primary font-bold">New {app.therapy || app.preferredService} booked</p>
+                  <p className="text-xs text-text-inverse mt-0.5 capitalize">Status: {app.status}</p>
                 </div>
               </div>
             ))}
-            {appointments.length === 0 && !loading && (
-              <p className="text-text-inverse text-sm">No activity recorded yet.</p>
+            {statsData.recentAppointments.length === 0 && !loading && (
+              <p className="text-text-inverse text-sm italic">No activity recorded yet.</p>
             )}
           </div>
         </div>

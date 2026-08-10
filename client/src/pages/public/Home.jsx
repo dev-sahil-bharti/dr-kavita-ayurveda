@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Leaf, HeartPulse, Activity, CheckCircle, ShieldCheck, Users, Clock, Sparkles } from 'lucide-react';
+import { ArrowRight, Leaf, HeartPulse, Activity, CheckCircle, ShieldCheck, Sparkles } from 'lucide-react';
 import heroImg1 from '../../assets/hero/ayurveda_hero_1_1786086680036.png';
 import heroImg2 from '../../assets/hero/ayurveda_hero_2_1786086694932.png';
 import heroImg3 from '../../assets/hero/ayurveda_hero_3_1786086707590.png';

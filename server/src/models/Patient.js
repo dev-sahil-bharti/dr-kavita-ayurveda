@@ -15,6 +15,7 @@ const patientSchema = new mongoose.Schema({
   consultationType: { type: String, enum: ["In-person", "Online"] },
   referredBy: { type: String },
   isVerified: { type: Boolean, default: false },
+  status: { type: String, enum: ['active', 'archived'], default: 'active' },
   createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 

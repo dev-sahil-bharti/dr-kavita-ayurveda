@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Activity, Calendar, User, LogOut, HeartPulse } from 'lucide-react';
+import { Activity, Calendar, User, LogOut } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/logo.png';
 

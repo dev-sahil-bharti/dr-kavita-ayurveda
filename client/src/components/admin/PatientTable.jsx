@@ -1,7 +1,7 @@
 import React from 'react';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Archive, RefreshCw } from 'lucide-react';
 
-const PatientTable = ({ patients }) => {
+const PatientTable = ({ patients, onView, onEdit, onArchiveToggle }) => {
   return (
     <div className="overflow-x-auto rounded-xs border border-text-inverse/20 bg-white shadow-3">
       <table className="min-w-full divide-y divide-text-inverse/20">
@@ -14,7 +14,7 @@ const PatientTable = ({ patients }) => {
               Contact
             </th>
             <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-text-secondary uppercase tracking-wider">
-              Gender
+              Status & Gender
             </th>
             <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-text-secondary uppercase tracking-wider">
               Registered Date
@@ -27,11 +27,11 @@ const PatientTable = ({ patients }) => {
         <tbody className="bg-white divide-y divide-text-inverse/10">
           {patients && patients.length > 0 ? (
             patients.map((patient) => (
-              <tr key={patient._id} className="hover:bg-text-inverse/5 transition-colors">
+              <tr key={patient._id} className={`transition-colors ${patient.status === 'archived' ? 'bg-slate-50 opacity-75' : 'hover:bg-text-inverse/5'}`}>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="h-10 w-10 flex-shrink-0">
-                      <div className="h-10 w-10 rounded-sm bg-surface-muted border flex items-center justify-center text-text-secondary font-bold text-lg">
+                      <div className={`h-10 w-10 rounded-sm border flex items-center justify-center font-bold text-lg ${patient.status === 'archived' ? 'bg-slate-200 text-slate-500' : 'bg-surface-muted text-text-secondary'}`}>
                         {patient.name.charAt(0)}
                       </div>
                     </div>
@@ -46,24 +46,51 @@ const PatientTable = ({ patients }) => {
                   <div className="text-sm text-text-inverse">{patient.email}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-sm bg-text-inverse/10 text-text-primary">
-                    {patient.gender}
-                  </span>
+                  <div className="flex flex-col gap-2 items-start">
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${patient.status === 'archived' ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
+                      {patient.status === 'archived' ? 'Archived' : 'Active'}
+                    </span>
+                    <span className="text-sm font-medium text-text-inverse ml-1">
+                      {patient.gender}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-lg text-text-inverse">
                   {new Date(patient.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-lg font-bold">
                   <div className="flex justify-end space-x-3">
-                    <button className="text-surface-strong hover:text-surface-strong/80 p-1 focus-visible:outline-none focus-visible:shadow-2 rounded-xs">
-                      <Eye className="h-5 w-5" />
+                    <button 
+                      onClick={() => onView(patient)}
+                      className="text-blue-500 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 p-1.5 transition-colors rounded-md"
+                      title="View Details"
+                    >
+                      <Eye className="h-4 w-4" />
                     </button>
-                    <button className="text-surface-muted hover:text-surface-muted/80 p-1 focus-visible:outline-none focus-visible:shadow-2 rounded-xs">
-                      <Edit className="h-5 w-5" />
+                    <button 
+                      onClick={() => onEdit(patient)}
+                      className="text-amber-500 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 p-1.5 transition-colors rounded-md"
+                      title="Edit Patient"
+                    >
+                      <Edit className="h-4 w-4" />
                     </button>
-                    <button className="text-red-500 hover:text-red-700 p-1 focus-visible:outline-none focus-visible:shadow-2 rounded-xs">
-                      <Trash2 className="h-5 w-5" />
-                    </button>
+                    {patient.status === 'archived' ? (
+                      <button 
+                        onClick={() => onArchiveToggle(patient._id, 'active')}
+                        className="text-emerald-500 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 p-1.5 transition-colors rounded-md"
+                        title="Unarchive Patient"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => onArchiveToggle(patient._id, 'archived')}
+                        className="text-slate-500 hover:text-slate-700 bg-slate-100 hover:bg-slate-200 p-1.5 transition-colors rounded-md"
+                        title="Archive Patient"
+                      >
+                        <Archive className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>

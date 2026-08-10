@@ -17,6 +17,10 @@ router.put('/changepassword/:id', auth, changePassword);
 // Get current logged-in admin's profile
 router.get('/profile', auth, require('../controllers/adminAuthController').getMyProfile);
 
+// Dashboard Stats
+const { getDashboardStats } = require('../controllers/dashboardController');
+router.get('/dashboard-stats', auth, getDashboardStats);
+
 // ==========================================
 // Admin Appointment Management Routes
 // ==========================================
