@@ -81,6 +81,10 @@ exports.notifyPatient = async (appointment, type) => {
         subject = 'Appointment Cancelled - Dr. Kavita Ayurveda';
         message = `Aapka appointment jo ${dateStr} ko tha, wo cancel kar diya gaya hai. Assuvidha ke liye khed hai.`;
         break;
+      case 'rescheduled':
+        subject = 'Appointment Rescheduled - Dr. Kavita Ayurveda';
+        message = `Aapka appointment Dr. Kavita ke saath reschedule ho gaya hai. Naya samay: ${dateStr} ${appointment.timeSlot}.`;
+        break;
       case 'reminder':
         subject = 'Appointment Reminder - Dr. Kavita Ayurveda';
         message = `Reminder: Kal ${dateStr} ${appointment.timeSlot} pe Dr. Kavita ke saath aapka appointment hai.`;

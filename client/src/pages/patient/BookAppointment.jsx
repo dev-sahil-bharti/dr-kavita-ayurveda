@@ -8,6 +8,10 @@ const BookAppointment = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  // Get current date in local timezone formatted as YYYY-MM-DD
+  const today = new Date();
+  const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
   const [formData, setFormData] = useState({
     patientName: '',
     mobile: '',
@@ -18,7 +22,7 @@ const BookAppointment = () => {
     age: '',
     occupation: '',
     urgency: 'Standard',
-    date: '',
+    date: formattedToday,
     timeSlot: '',
     reasonForVisit: '',
     isFirstVisit: 'Yes',
@@ -358,7 +362,7 @@ const BookAppointment = () => {
                       type="date"
                       name="date"
                       required
-                      min={new Date().toISOString().split('T')[0]}
+                      min={formattedToday}
                       value={formData.date}
                       onChange={handleChange}
                       className={inputClassName}

@@ -124,6 +124,10 @@ exports.updateAppointmentStatus = catchAsync(async (req, res) => {
       onModel: 'Appointment',
       recipient: appointment.patient._id || appointment.patient
     });
+    
+    if (status === 'rescheduled') {
+      await notifyPatient(appointment, 'rescheduled');
+    }
   }
 
   res.json({ status: 'success', data: appointment });
