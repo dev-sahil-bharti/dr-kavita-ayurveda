@@ -6,7 +6,7 @@ import logo from '../../assets/logo.png';
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logout } = useAuth();
-  
+
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/admin/dashboard' },
     { name: 'Patients', icon: Users, path: '/admin/patients' },
@@ -21,7 +21,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     <>
       {/* Mobile overlay */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-text-tertiary/50 md:hidden"
           onClick={toggleSidebar}
         />
@@ -39,6 +39,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         <div className="h-16 flex items-center px-6 border-b border-slate-800">
           <Link to="/admin/dashboard" className="flex items-center gap-3">
             <img src={logo} alt="Dr. Kavita Ayurveda Logo" className="h-10 w-auto rounded-full bg-white p-0.5" />
+            <h1 className="text-xl font-bold">Dr. Kavita Ayurveda</h1>
           </Link>
         </div>
 
@@ -57,8 +58,8 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 }}
                 className={({ isActive }) => `
                   flex items-center px-4 py-3 rounded-xs transition-colors text-lg focus-visible:outline-none focus-visible:shadow-2
-                  ${isActive 
-                    ? 'bg-surface-strong text-text-secondary shadow-1' 
+                  ${isActive
+                    ? 'bg-surface-strong text-text-secondary shadow-1'
                     : 'text-text-secondary/80 hover:bg-white/10 hover:text-text-secondary'}
                 `}
               >
@@ -68,10 +69,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             );
           })}
         </nav>
-
         {/* Logout area */}
         <div className="p-4 border-t border-white/10">
-          <button 
+          <button
             onClick={logout}
             className="flex items-center w-full px-4 py-3 text-lg text-text-secondary/80 rounded-xs hover:bg-white/10 hover:text-text-secondary transition-colors focus-visible:outline-none focus-visible:shadow-2"
           >

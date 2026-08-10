@@ -20,6 +20,7 @@ const appointmentRoutes = require('./routes/appointmentRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const otpRoutes = require('./routes/otpRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const settingRoutes = require('./routes/settingRoutes');
 
 app.use('/api/admin', adminRoutes);
 app.use('/api/patient', patientRoutes);
@@ -28,6 +29,7 @@ app.use('/api/appointments', appointmentRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/otp', otpRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/settings', settingRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

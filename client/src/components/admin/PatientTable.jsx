@@ -5,21 +5,21 @@ const PatientTable = ({ patients, onView, onEdit, onArchiveToggle }) => {
   return (
     <div className="overflow-x-auto rounded-xs border border-text-inverse/20 bg-white shadow-3">
       <table className="min-w-full divide-y divide-text-inverse/20">
-        <thead className="bg-surface-base">
+        <thead className="bg-slate-50 border-b border-slate-200">
           <tr>
-            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-text-secondary uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
               Patient Name
             </th>
-            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-text-secondary uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
               Contact
             </th>
-            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-text-secondary uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
               Status & Gender
             </th>
-            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-text-secondary uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
               Registered Date
             </th>
-            <th scope="col" className="px-6 py-4 text-right text-sm font-bold text-text-secondary uppercase tracking-wider">
+            <th scope="col" className="px-6 py-4 text-right text-sm font-bold text-slate-600 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -47,7 +47,7 @@ const PatientTable = ({ patients, onView, onEdit, onArchiveToggle }) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex flex-col gap-2 items-start">
-                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${patient.status === 'archived' ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
+                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-bold rounded-full ${patient.status === 'archived' ? 'bg-slate-100 text-slate-600 border border-slate-200' : 'bg-green-100 text-green-800 border border-green-200'}`}>
                       {patient.status === 'archived' ? 'Archived' : 'Active'}
                     </span>
                     <span className="text-sm font-medium text-text-inverse ml-1">

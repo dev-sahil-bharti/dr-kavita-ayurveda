@@ -3,7 +3,7 @@
 @theme {
   /* Typography Scale */
   --font-sans: "Lato", Arial, Helvetica, sans-serif;
-  --text-xs: 0px;
+  --text-xs: 11px;
   --text-sm: 12px;
   --text-md: 13px;
   --text-lg: 14px;

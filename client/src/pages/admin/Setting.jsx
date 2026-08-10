@@ -17,11 +17,15 @@ const Settings = () => {
   });
 
   useEffect(() => {
-    const fetchAdminProfile = async () => {
+    const fetchSettingsAndProfile = async () => {
       try {
-        const response = await api.get('/admin/profile');
-        if (response.data && response.data.user) {
-          const user = response.data.user;
+        const [profileRes, settingsRes] = await Promise.all([
+          api.get('/admin/profile'),
+          api.get('/settings')
+        ]);
+        
+        if (profileRes.data && profileRes.data.user) {
+          const user = profileRes.data.user;
           setAdminId(user._id);
           setGeneralSettings(prev => ({
             ...prev,
@@ -30,11 +34,28 @@ const Settings = () => {
             supportPhone: user.mobileNo || '',
           }));
         }
+
+        if (settingsRes.data && settingsRes.data.data) {
+          const s = settingsRes.data.data;
+          setGeneralSettings(prev => ({ ...prev, theme: s.theme }));
+          setClinicSettings({
+            address: s.clinicAddress,
+            workingDays: s.workingDays,
+            workingHours: s.workingHours,
+            maxAppointmentsPerDay: s.maxAppointmentsPerDay
+          });
+          setNotificationSettings({
+            emailAlerts: s.emailAlerts,
+            smsAlerts: s.smsAlerts,
+            marketingEmails: s.marketingEmails,
+            dailySummary: s.dailySummary
+          });
+        }
       } catch (error) {
-        toast.error('Failed to load profile data');
+        toast.error('Failed to load settings data');
       }
     };
-    fetchAdminProfile();
+    fetchSettingsAndProfile();
   }, []);
 
   const [clinicSettings, setClinicSettings] = useState({
@@ -61,18 +82,28 @@ const Settings = () => {
           email: generalSettings.contactEmail,
           mobileNo: generalSettings.supportPhone
         });
-        toast.success('Profile updated successfully!');
-      } else {
-        // Simulate API call for other settings tabs
-        setTimeout(() => {
-          toast.success('Settings saved successfully!');
-        }, 800);
+        
+        await api.put('/settings', {
+          theme: generalSettings.theme
+        });
+        
+        toast.success('Profile and appearance updated successfully!');
+      } else if (activeTab === 'clinic') {
+        await api.put('/settings', {
+          clinicAddress: clinicSettings.address,
+          workingDays: clinicSettings.workingDays,
+          workingHours: clinicSettings.workingHours,
+          maxAppointmentsPerDay: Number(clinicSettings.maxAppointmentsPerDay)
+        });
+        toast.success('Clinic info updated successfully!');
+      } else if (activeTab === 'notifications') {
+        await api.put('/settings', notificationSettings);
+        toast.success('Notification preferences updated successfully!');
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save settings');
     } finally {
-      if (activeTab === 'general') setIsSaving(false);
-      else setTimeout(() => setIsSaving(false), 800);
+      setIsSaving(false);
     }
   };
 

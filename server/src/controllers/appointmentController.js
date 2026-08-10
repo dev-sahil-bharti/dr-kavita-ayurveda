@@ -3,7 +3,7 @@ const Notification = require('../models/Notification');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 const Razorpay = require('razorpay');
-const { notifyPatient } = require('../utils/notify');
+const { notifyPatient, notifyAdmin } = require('../utils/notify');
 const crypto = require('crypto');
 
 exports.bookAppointment = catchAsync(async (req, res) => {
@@ -56,6 +56,20 @@ exports.bookAppointment = catchAsync(async (req, res) => {
     relatedId: appointment._id,
     onModel: 'Appointment'
   });
+
+  // Create Patient Notification
+  await Notification.create({
+    title: 'Appointment Requested',
+    message: `Your appointment request for ${preferredService} has been received.`,
+    type: 'appointment',
+    relatedId: appointment._id,
+    onModel: 'Appointment',
+    recipient: appointment.patient
+  });
+
+  // Send SMS and Email Notifications
+  await notifyPatient(appointment, 'requested');
+  await notifyAdmin(appointment, 'requested');
 
   res.status(201).json({ status: 'success', data: appointment });
 });

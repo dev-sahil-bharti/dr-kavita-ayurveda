@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const Admin = require('../models/Admin');
 
 // Initialize Nodemailer transporter
 const transporter = nodemailer.createTransport({
@@ -65,6 +66,10 @@ exports.notifyPatient = async (appointment, type) => {
     const dateStr = new Date(appointment.date).toLocaleDateString('en-IN');
     
     switch (type) {
+      case 'requested':
+        subject = 'Appointment Requested - Dr. Kavita Ayurveda';
+        message = `Aapka appointment request ${dateStr} ${appointment.timeSlot} ke liye receive ho gaya hai. Hum jaldi hi confirm karenge.`;
+        break;
       case 'confirmed':
         subject = 'Appointment Confirmed - Dr. Kavita Ayurveda';
         message = `Aapka appointment Dr. Kavita ke saath ${dateStr} ${appointment.timeSlot} pe confirm ho gaya hai.`;
@@ -100,5 +105,40 @@ exports.notifyPatient = async (appointment, type) => {
     }
   } catch (error) {
     console.error('❌ Notification failed (but execution continues):', error.message);
+  }
+};
+
+exports.notifyAdmin = async (appointment, type) => {
+  try {
+    let subject = '';
+    let message = '';
+    
+    const dateStr = new Date(appointment.date).toLocaleDateString('en-IN');
+    
+    switch (type) {
+      case 'requested':
+        subject = 'New Appointment Request - Dr. Kavita Ayurveda';
+        message = `New appointment requested by ${appointment.patientName} for ${appointment.preferredService} on ${dateStr} at ${appointment.timeSlot}.`;
+        break;
+      default:
+        return;
+    }
+    
+    // Fetch all admins
+    const admins = await Admin.find();
+    
+    for (const admin of admins) {
+      // Send SMS
+      if (admin.mobileNo) {
+        await exports.sendSMS(admin.mobileNo, message);
+      }
+      
+      // Send Email
+      if (admin.email) {
+        await exports.sendEmail(admin.email, subject, message);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Admin Notification failed:', error.message);
   }
 };

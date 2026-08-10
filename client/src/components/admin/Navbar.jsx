@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, Check, User, Calendar, MessageSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../services/api';
@@ -9,7 +10,9 @@ const Navbar = ({ toggleSidebar }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const dropdownRef = useRef(null);
+  const navigate = useNavigate();
 
   const fetchNotifications = async () => {
     try {
@@ -79,6 +82,14 @@ const Navbar = ({ toggleSidebar }) => {
           <Search className="h-4 w-4 absolute left-3 text-text-inverse" />
           <input 
             type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                navigate(`/admin/patients?search=${encodeURIComponent(searchQuery.trim())}`);
+                setSearchQuery('');
+              }
+            }}
             placeholder="Search patients..." 
             className="pl-10 pr-4 py-2 bg-white border border-text-inverse rounded-sm text-lg focus-visible:outline-none focus-visible:shadow-2 w-64"
           />

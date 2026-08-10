@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import PatientTable from '../../components/admin/PatientTable';
 import PatientModal from '../../components/admin/PatientModal';
 import { Search, Filter, Plus } from 'lucide-react';
@@ -8,6 +9,10 @@ import toast from 'react-hot-toast';
 const Patients = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterOptions, setFilterOptions] = useState({ status: 'all', gender: 'all' });
+  const location = useLocation();
   
   // Modal state
   const [selectedPatient, setSelectedPatient] = useState(null);
@@ -30,6 +35,14 @@ const Patients = () => {
   useEffect(() => {
     fetchPatients();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchParam = params.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+    }
+  }, [location]);
 
   const handleView = (patient) => {
     setSelectedPatient(patient);
@@ -66,6 +79,30 @@ const Patients = () => {
     fetchPatients(); // refresh table
   };
 
+  const filteredPatients = patients.filter(p => {
+    // Search Filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const matchesSearch = (p.name && p.name.toLowerCase().includes(query)) ||
+                            (p.mobile && p.mobile.includes(query)) ||
+                            (p.email && p.email.toLowerCase().includes(query));
+      if (!matchesSearch) return false;
+    }
+
+    // Status Filter
+    if (filterOptions.status !== 'all') {
+      const pStatus = p.status || 'active';
+      if (pStatus !== filterOptions.status) return false;
+    }
+
+    // Gender Filter
+    if (filterOptions.gender !== 'all') {
+      if (p.gender !== filterOptions.gender) return false;
+    }
+
+    return true;
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -85,14 +122,68 @@ const Patients = () => {
         <div className="relative w-full sm:w-96">
           <Search className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input 
-            type="text" 
-            placeholder="Search by name, phone or ID..." 
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, phone or email..." 
             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all"
           />
         </div>
-        <button className="flex items-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors text-sm font-medium w-full sm:w-auto justify-center">
-          <Filter className="h-4 w-4 mr-2 text-slate-400" /> Filter Options
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowFilter(!showFilter)}
+            className="flex items-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors text-sm font-medium w-full sm:w-auto justify-center"
+          >
+            <Filter className="h-4 w-4 mr-2 text-slate-400" /> 
+            Filters {(filterOptions.status !== 'all' || filterOptions.gender !== 'all') && <span className="ml-2 w-2 h-2 rounded-full bg-emerald-500"></span>}
+          </button>
+          
+          {/* Filter Dropdown */}
+          {showFilter && (
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 z-10 p-4">
+              <h3 className="font-bold text-slate-800 mb-3 text-sm">Filter Patients</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Status</label>
+                  <select 
+                    value={filterOptions.status}
+                    onChange={(e) => setFilterOptions({...filterOptions, status: e.target.value})}
+                    className="w-full text-sm border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="archived">Archived</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">Gender</label>
+                  <select 
+                    value={filterOptions.gender}
+                    onChange={(e) => setFilterOptions({...filterOptions, gender: e.target.value})}
+                    className="w-full text-sm border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-emerald-500"
+                  >
+                    <option value="all">All Genders</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                
+                <button 
+                  onClick={() => {
+                    setFilterOptions({ status: 'all', gender: 'all' });
+                    setShowFilter(false);
+                  }}
+                  className="w-full text-center text-xs text-slate-500 hover:text-slate-800 pt-2"
+                >
+                  Clear Filters
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {loading ? (
@@ -101,7 +192,7 @@ const Patients = () => {
         </div>
       ) : (
         <PatientTable 
-          patients={patients} 
+          patients={filteredPatients} 
           onView={handleView}
           onEdit={handleEdit}
           onArchiveToggle={handleArchiveToggle}

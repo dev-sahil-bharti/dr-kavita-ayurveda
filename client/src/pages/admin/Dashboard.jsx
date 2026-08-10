@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, Activity, TrendingUp } from 'lucide-react';
+import toast from 'react-hot-toast';
 import AppointmentCard from '../../components/admin/AppointmentCard';
 import api from '../../services/api';
 
@@ -28,6 +29,30 @@ const Dashboard = () => {
     
     fetchDashboardData();
   }, []);
+
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      setLoading(true);
+      if (newStatus === 'confirmed') {
+        await api.patch(`/admin/appointments/${id}/accept`);
+      } else {
+        await api.put(`/appointments/${id}/status`, { status: newStatus });
+      }
+      
+      const res = await api.get('/admin/dashboard-stats');
+      setStatsData(res.data.data);
+      toast.success(`Appointment marked as ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error(error.response?.data?.message || 'Failed to update status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleViewDetails = (id) => {
+    window.location.href = `/admin/appointments`;
+  };
 
   const stats = [
     { title: 'Total Patients', value: loading ? '...' : statsData.totalPatients, icon: Users, color: 'text-surface-strong', bg: 'bg-surface-strong/10' },
@@ -74,7 +99,12 @@ const Dashboard = () => {
               </p>
             ) : statsData.recentAppointments.length > 0 ? (
               statsData.recentAppointments.map(apt => (
-                <AppointmentCard key={apt._id} appointment={apt} onUpdateStatus={() => {}} onViewDetails={() => {}} />
+                <AppointmentCard 
+                  key={apt._id} 
+                  appointment={apt} 
+                  onUpdateStatus={handleUpdateStatus} 
+                  onViewDetails={() => handleViewDetails(apt._id)} 
+                />
               ))
             ) : (
               <p className="text-text-inverse col-span-2">No recent appointments found.</p>
