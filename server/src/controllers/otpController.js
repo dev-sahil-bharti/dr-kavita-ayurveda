@@ -3,7 +3,7 @@ const AppError = require('../utils/AppError');
 const https = require('https');
 
 // In-memory store for OTPs (For production, use Redis or a Mongoose OTP model with TTL)
-const otpStore = new Map();
+const otpStore = require('../utils/otpStore');
 
 exports.sendOtp = catchAsync(async (req, res) => {
   const { mobile } = req.body;

@@ -27,3 +27,23 @@ exports.getMyProfile = catchAsync(async (req, res) => {
   const admin = await adminService.getAdminProfile(req.user.id);
   res.json({ user: admin });
 });
+
+exports.forgotPassword = catchAsync(async (req, res) => {
+  const { contact } = req.body;
+  if (!contact) {
+    const AppError = require('../utils/AppError');
+    throw new AppError('Email or Mobile number is required', 400);
+  }
+  const result = await adminService.forgotPassword(contact);
+  res.json(result);
+});
+
+exports.resetPassword = catchAsync(async (req, res) => {
+  const { contact, otp, newPassword } = req.body;
+  if (!contact || !otp || !newPassword) {
+    const AppError = require('../utils/AppError');
+    throw new AppError('Contact, OTP, and New Password are required', 400);
+  }
+  const result = await adminService.resetPassword(contact, otp, newPassword);
+  res.json(result);
+});

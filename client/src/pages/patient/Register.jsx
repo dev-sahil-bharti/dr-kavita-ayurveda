@@ -120,20 +120,29 @@ const Register = () => {
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mobile Number</label>
                     <div className="flex gap-2">
-                      <input
-                        type="text"
-                        name="mobile"
-                        required
-                        placeholder="+91 00000000"
-                        value={formData.mobile}
-                        onChange={handleChange}
-                        disabled={otpVerified || otpSent}
-                        className="block w-full px-4 py-3 sm:py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white disabled:opacity-70 disabled:cursor-not-allowed"
-                      />
+                      <div className="relative flex-1">
+                        <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 font-medium">
+                          +91
+                        </span>
+                        <input
+                          type="text"
+                          name="mobile"
+                          required
+                          maxLength={10}
+                          placeholder="0000000000"
+                          value={formData.mobile}
+                          onChange={(e) => {
+                            const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            handleChange({ target: { name: 'mobile', value: val } });
+                          }}
+                          disabled={otpVerified || otpSent}
+                          className="block w-full pl-10 pr-4 py-3 sm:py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white disabled:opacity-70 disabled:cursor-not-allowed"
+                        />
+                      </div>
                       {!otpVerified && (
                         <button
                           type="button"
@@ -246,7 +255,7 @@ const Register = () => {
         </div>
 
         {/* Right Side - Modern Responsive Illustration */}
-        <div className="w-full lg:w-1/2 bg-gradient-to-br from-teal-400 via-teal-500 to-emerald-600 p-8 sm:p-12 flex flex-col items-center justify-center relative overflow-hidden order-1 lg:order-2 min-h-[250px] lg:min-h-full">
+        <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-teal-400 via-teal-500 to-emerald-600 p-8 sm:p-12 flex-col items-center justify-center relative overflow-hidden order-1 lg:order-2 lg:min-h-full">
           <div className="text-center mb-6 relative z-10 lg:hidden">
             <h2 className="text-3xl font-bold text-white mb-2">Join Us</h2>
           </div>

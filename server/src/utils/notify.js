@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const https = require('https');
 const Admin = require('../models/Admin');
 
 // Initialize Nodemailer transporter
@@ -46,12 +47,22 @@ exports.sendSMS = async (mobile, message) => {
     }
 
     // In India, sending custom text via MSG91 requires DLT template ID. 
-    // For development, we log it to console so you can see exactly what would be sent.
-    console.log(`\n========================================`);
-    console.log(`📱 MOCK MSG91 SMS SENT`);
-    console.log(`To: ${formattedMobile}`);
-    console.log(`Message: ${message}`);
-    console.log(`========================================\n`);
+    // If not strict, this basic API sends the SMS.
+    const url = `https://api.msg91.com/api/sendhttp.php?authkey=${msg91AuthKey}&mobiles=${formattedMobile}&message=${encodeURIComponent(message)}&sender=DRKAVI&route=4`;
+
+    await new Promise((resolve, reject) => {
+      https.get(url, (response) => {
+        let data = '';
+        response.on('data', chunk => data += chunk);
+        response.on('end', () => {
+          console.log(`📱 REAL SMS SENT to ${formattedMobile} via MSG91. Response: ${data}`);
+          resolve();
+        });
+      }).on('error', (err) => {
+        console.error('MSG91 Request Error:', err);
+        resolve(); // Don't throw to avoid breaking the execution flow
+      });
+    });
 
   } catch (error) {
     console.error('❌ Failed to send SMS:', error.message);

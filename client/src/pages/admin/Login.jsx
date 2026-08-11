@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Lock, Mail, ArrowRight, Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import logo from '../../assets/logo.png';
+import ForgotPasswordModal from '../../components/ForgotPasswordModal';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -10,6 +11,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -122,9 +124,13 @@ const Login = () => {
                 </label>
               </div>
               <div className="text-sm">
-                <a href="#" className="font-semibold text-surface-strong hover:text-surface-muted transition-colors duration-300">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="font-semibold text-surface-strong hover:text-surface-muted transition-colors duration-300"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
             </div>
 
@@ -157,6 +163,12 @@ const Login = () => {
           Secure admin access portal &copy; {new Date().getFullYear()} Dr. Kavita Ayurveda
         </p>
       </div>
+
+      <ForgotPasswordModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        userType="admin"
+      />
     </div>
   );
 };

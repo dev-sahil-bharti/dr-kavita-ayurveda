@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerAdmin, loginAdmin, updateAdminProfile, changePassword } = require('../controllers/adminAuthController');
+const { registerAdmin, loginAdmin, updateAdminProfile, changePassword, forgotPassword, resetPassword } = require('../controllers/adminAuthController');
 const auth = require('../middleware/auth');
 
 const validate = require('../middleware/validate');
@@ -9,6 +9,8 @@ const { registerAdminSchema, loginAdminSchema } = require('../schemas/adminSchem
 // Public routes
 router.post('/register', validate(registerAdminSchema), registerAdmin);
 router.post('/login', validate(loginAdminSchema), loginAdmin);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 // Protected routes
 router.put('/updateAdminProfile/:id', auth, updateAdminProfile);

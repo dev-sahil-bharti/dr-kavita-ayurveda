@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
 import doctorIllustration from '../../assets/doctor_illustration.png';
+import ForgotPasswordModal from '../../components/ForgotPasswordModal';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -11,6 +12,8 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loginMethod, setLoginMethod] = useState('mobile');
   
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -57,16 +60,54 @@ const Login = () => {
               )}
               
               <div className="space-y-5">
+                {/* Tabs */}
+                <div className="flex p-1 bg-slate-100 rounded-lg">
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMethod('mobile'); setEmail(''); setError(''); }}
+                    className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${loginMethod === 'mobile' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Mobile Number
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setLoginMethod('email'); setEmail(''); setError(''); }}
+                    className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${loginMethod === 'email' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-500 hover:text-slate-700'}`}
+                  >
+                    Email Address
+                  </button>
+                </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="john@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full px-4 py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white"
-                  />
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    {loginMethod === 'email' ? 'Email Address' : 'Mobile Number'}
+                  </label>
+                  
+                  {loginMethod === 'email' ? (
+                    <input
+                      type="email"
+                      required
+                      placeholder="john@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="block w-full px-4 py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white"
+                    />
+                  ) : (
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center text-slate-500 font-medium">
+                        +91
+                      </span>
+                      <input
+                        type="text"
+                        required
+                        maxLength={10}
+                        placeholder="0000000000"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                        className="block w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -105,9 +146,13 @@ const Login = () => {
                   </label>
                 </div>
                 <div className="text-sm">
-                  <a href="#" className="font-semibold text-teal-600 hover:text-teal-500 transition-colors">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(true)}
+                    className="font-semibold text-teal-600 hover:text-teal-500 transition-colors"
+                  >
                     Forgot Password?
-                  </a>
+                  </button>
                 </div>
               </div>
 
@@ -132,7 +177,7 @@ const Login = () => {
         </div>
         
         {/* Right Side - Modern Responsive Illustration */}
-        <div className="w-full lg:w-1/2 bg-gradient-to-br from-teal-400 via-teal-500 to-emerald-600 p-8 sm:p-12 flex flex-col items-center justify-center relative overflow-hidden order-1 lg:order-2 min-h-[300px] lg:min-h-full">
+        <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-teal-400 via-teal-500 to-emerald-600 p-8 sm:p-12 flex-col items-center justify-center relative overflow-hidden order-1 lg:order-2 lg:min-h-full">
            <div className="text-center mb-8 relative z-10 lg:hidden">
               <h2 className="text-3xl font-bold text-white mb-2">Patient Portal</h2>
               <p className="text-teal-50">Manage your appointments easily</p>
@@ -160,6 +205,11 @@ const Login = () => {
            </div>
         </div>
       </div>
+      <ForgotPasswordModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        userType="patient"
+      />
     </div>
   );
 };

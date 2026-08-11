@@ -19,7 +19,7 @@ const registerPatientSchema = z.object({
 
 const loginPatientSchema = z.object({
   body: z.object({
-    email: z.string().email('Invalid email address'),
+    email: z.string().min(1, 'Email or Mobile is required'),
     password: z.string().min(1, 'Password is required'),
   }),
 });

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerPatient, loginPatient, updatePatientProfile, changePassword, getPatientProfile } = require('../controllers/patientAuthController');
+const { registerPatient, loginPatient, updatePatientProfile, changePassword, getPatientProfile, forgotPassword, resetPassword } = require('../controllers/patientAuthController');
 const { getPatientAppointmentHistory } = require('../controllers/appointmentController');
 const auth = require('../middleware/auth');
 
@@ -10,6 +10,8 @@ const { registerPatientSchema, loginPatientSchema } = require('../schemas/patien
 // Public routes
 router.post('/register', validate(registerPatientSchema), registerPatient);
 router.post('/login', validate(loginPatientSchema), loginPatient);
+router.post('/forgot-password', forgotPassword);
+router.post('/reset-password', resetPassword);
 
 // Protected routes
 router.get('/', auth, require('../controllers/patientAuthController').getAllPatients);

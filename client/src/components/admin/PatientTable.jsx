@@ -42,7 +42,9 @@ const PatientTable = ({ patients, onView, onEdit, onArchiveToggle }) => {
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-lg text-text-primary">{patient.mobile}</div>
+                  <div className="text-lg text-text-primary">
+                    {patient.mobile ? `+91 ${patient.mobile.replace(/\D/g, '').slice(-10)}` : '-'}
+                  </div>
                   <div className="text-sm text-text-inverse">{patient.email}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
