@@ -38,6 +38,7 @@ const Appointments = () => {
   }, [location.pathname]);
 
   const handleUpdateStatus = async (id, status) => {
+    if (!window.confirm(`Do you really want to change the status to ${status}?`)) return;
     try {
       if (status === 'confirmed') {
         await api.patch(`/admin/appointments/${id}/accept`);
@@ -58,6 +59,7 @@ const Appointments = () => {
   };
 
   const handleCompleteSubmit = async (id, completeData) => {
+    if (!window.confirm('Do you really want to mark this appointment as completed?')) return;
     try {
       await api.patch(`/admin/appointments/${id}/complete`, completeData);
       fetchAppointments();
@@ -70,6 +72,7 @@ const Appointments = () => {
   };
 
   const handleRescheduleSubmit = async (id, rescheduleData) => {
+    if (!window.confirm('Do you really want to reschedule this appointment?')) return;
     try {
       const res = await api.put(`/appointments/${id}/status`, { 
         status: 'rescheduled', 
