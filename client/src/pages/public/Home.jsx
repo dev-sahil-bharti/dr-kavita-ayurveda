@@ -66,7 +66,7 @@ const Home = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             <Link
-              to="/patient/book"
+              to="/patient/register"
               className="group flex items-center justify-center gap-2 text-lg font-bold px-8 py-4 bg-surface-strong hover:bg-surface-strong/90 text-white rounded-full shadow-lg shadow-surface-strong/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
               Book Consultation
