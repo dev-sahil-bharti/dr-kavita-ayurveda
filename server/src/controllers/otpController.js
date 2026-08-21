@@ -2,9 +2,6 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 const https = require('https');
 
-// In-memory store for OTPs (For production, use Redis or a Mongoose OTP model with TTL)
-const otpStore = require('../utils/otpStore');
-
 exports.sendOtp = catchAsync(async (req, res) => {
   const { mobile } = req.body;
 
@@ -12,98 +9,185 @@ exports.sendOtp = catchAsync(async (req, res) => {
     throw new AppError('Mobile number is required', 400);
   }
 
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  // Remove spaces, +, -, etc.
+  let formattedMobile = mobile.replace(/\D/g, '');
 
-  // Store it with expiry (5 minutes)
-  const expiresAt = Date.now() + 5 * 60 * 1000;
-  otpStore.set(mobile, { otp, expiresAt });
-
-  // Format mobile for MSG91 (add 91 if exactly 10 digits)
-  let formattedMobile = mobile.replace(/\D/g, ''); // remove non-digits
+  // Add India country code
   if (formattedMobile.length === 10) {
-    formattedMobile = '91' + formattedMobile;
+    formattedMobile = `91${formattedMobile}`;
   }
 
-  // Log OTP to console for easy testing
-  console.log(`\n========================================`);
-  console.log(`📱 OTP GENERATED (Also sending via MSG91)`);
-  console.log(`To: ${formattedMobile}`);
-  console.log(`OTP Code: ${otp}`);
-  console.log(`========================================\n`);
-
-  // REAL SMS SENDING via MSG91
-  const msg91AuthKey = process.env.MSG91_AUTH_KEY;
-  const msg91TemplateId = process.env.MSG91_OTP_TEMPLATE_ID;
-  
-  if (!msg91AuthKey) {
-    console.warn('MSG91_AUTH_KEY is not defined in .env');
+  if (formattedMobile.length !== 12) {
+    throw new AppError('Please enter a valid mobile number', 400);
   }
 
-  let url = `https://control.msg91.com/api/v5/otp?authkey=${msg91AuthKey}&mobile=${formattedMobile}&otp=${otp}`;
-  if (msg91TemplateId && msg91TemplateId !== 'your_template_id') {
-    url += `&template_id=${msg91TemplateId}`;
+  const authKey = process.env.MSG91_AUTH_KEY;
+  const templateId = process.env.MSG91_OTP_TEMPLATE_ID;
+
+  if (!authKey) {
+    throw new AppError('MSG91_AUTH_KEY is missing', 500);
   }
 
-  await new Promise((resolve, reject) => {
-    https.get(url, (response) => {
-      let data = '';
-      response.on('data', chunk => data += chunk);
-      response.on('end', () => {
-        try {
-          const result = JSON.parse(data);
-          if (result.type === 'error') {
-            console.error('MSG91 Error:', result);
-            reject(new AppError(result.message || 'Failed to send OTP via MSG91', 500));
-          } else {
-            console.log(`📱 REAL SMS SENT to ${formattedMobile} via MSG91`);
-            resolve();
-          }
-        } catch (e) {
-          // If response isn't JSON, just log it
-          console.log(`📱 REAL SMS response: ${data}`);
-          resolve();
+  if (!templateId) {
+    throw new AppError('MSG91_OTP_TEMPLATE_ID is missing', 500);
+  }
+
+  const url =
+    `https://control.msg91.com/api/v5/otp` +
+    `?template_id=${encodeURIComponent(templateId)}` +
+    `&mobile=${encodeURIComponent(formattedMobile)}` +
+    `&authkey=${encodeURIComponent(authKey)}`;
+
+  console.log('Sending OTP to:', formattedMobile);
+  console.log('MSG91 Template ID:', templateId);
+
+  const result = await new Promise((resolve, reject) => {
+    const request = https.request(
+      url,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
         }
-      });
-    }).on('error', (err) => {
-      console.error('MSG91 Request Error:', err);
-      reject(new AppError('Failed to connect to MSG91 SMS service', 500));
+      },
+      (response) => {
+        let data = '';
+
+        response.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        response.on('end', () => {
+          console.log('MSG91 Status:', response.statusCode);
+          console.log('MSG91 Response:', data);
+
+          let result;
+
+          try {
+            result = JSON.parse(data);
+          } catch (error) {
+            return reject(
+              new AppError(`Invalid response from MSG91: ${data}`, 500)
+            );
+          }
+
+          if (response.statusCode < 200 || response.statusCode >= 300) {
+            return reject(
+              new AppError(
+                result.message || 'MSG91 failed to send OTP',
+                response.statusCode
+              )
+            );
+          }
+
+          if (result.type === 'error') {
+            return reject(
+              new AppError(
+                result.message || 'MSG91 failed to send OTP',
+                400
+              )
+            );
+          }
+
+          resolve(result);
+        });
+      }
+    );
+
+    request.on('error', (error) => {
+      console.error('MSG91 Request Error:', error);
+      reject(
+        new AppError('Failed to connect to MSG91', 500)
+      );
     });
+
+    request.end();
   });
 
   res.status(200).json({
     success: true,
-    message: 'OTP sent successfully'
+    message: 'OTP sent successfully',
+    data: result
   });
 });
+
 
 exports.verifyOtp = catchAsync(async (req, res) => {
   const { mobile, otp } = req.body;
 
   if (!mobile || !otp) {
-    throw new AppError('Mobile number and OTP are required', 400);
+    throw new AppError(
+      'Mobile number and OTP are required',
+      400
+    );
   }
 
-  const storedData = otpStore.get(mobile);
+  let formattedMobile = mobile.replace(/\D/g, '');
 
-  if (!storedData) {
-    throw new AppError('OTP not requested or expired. Please request a new one.', 400);
+  if (formattedMobile.length === 10) {
+    formattedMobile = `91${formattedMobile}`;
   }
 
-  if (Date.now() > storedData.expiresAt) {
-    otpStore.delete(mobile);
-    throw new AppError('OTP has expired. Please request a new one.', 400);
+  const authKey = process.env.MSG91_AUTH_KEY;
+
+  if (!authKey) {
+    throw new AppError('MSG91_AUTH_KEY is missing', 500);
   }
 
-  if (storedData.otp !== otp) {
-    throw new AppError('Invalid OTP', 400);
-  }
+  const url =
+    `https://control.msg91.com/api/v5/otp/verify` +
+    `?otp=${encodeURIComponent(otp)}` +
+    `&mobile=${encodeURIComponent(formattedMobile)}`;
 
-  // If verified, delete the OTP to prevent reuse
-  otpStore.delete(mobile);
+  const result = await new Promise((resolve, reject) => {
+    const request = https.request(
+      url,
+      {
+        method: 'GET',
+        headers: {
+          authkey: authKey
+        }
+      },
+      (response) => {
+        let data = '';
+
+        response.on('data', (chunk) => {
+          data += chunk;
+        });
+
+        response.on('end', () => {
+          console.log('MSG91 Verify Status:', response.statusCode);
+          console.log('MSG91 Verify Response:', data);
+
+          try {
+            const result = JSON.parse(data);
+
+            if (result.type === 'error') {
+              return reject(
+                new AppError(
+                  result.message || 'Invalid OTP',
+                  400
+                )
+              );
+            }
+
+            resolve(result);
+          } catch (error) {
+            reject(
+              new AppError('Invalid response from MSG91', 500)
+            );
+          }
+        });
+      }
+    );
+
+    request.on('error', reject);
+    request.end();
+  });
 
   res.status(200).json({
     success: true,
-    message: 'Mobile number verified successfully'
+    message: 'Mobile number verified successfully',
+    data: result
   });
 });
