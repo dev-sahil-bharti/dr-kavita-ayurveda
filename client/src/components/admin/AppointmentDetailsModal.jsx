@@ -55,7 +55,8 @@ const AppointmentDetailsModal = ({
     onCompleteSubmit(selectedAppointment._id, completeData);
   };
 
-  const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+  const SERVER_URL = API_URL.replace(/\/api$/, '');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-900/40 backdrop-blur-md transition-all">
@@ -197,7 +198,7 @@ const AppointmentDetailsModal = ({
                   </div>
                 </div>
                 <a 
-                  href={`${BASE_URL}/${selectedAppointment.reportsFile}`} 
+                  href={selectedAppointment.reportsFile.startsWith('http') ? selectedAppointment.reportsFile : `${SERVER_URL}/${selectedAppointment.reportsFile}`} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm text-center shadow-blue-600/20"

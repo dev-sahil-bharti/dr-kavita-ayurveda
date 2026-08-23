@@ -463,7 +463,7 @@ const BookAppointment = () => {
                       name="reports"
                       onChange={handleChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer hidden"
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      accept="image/*,.pdf,.doc,.docx,.txt"
                       id="file-upload"
                     />
                     <div className="flex flex-col items-center text-center">
@@ -474,7 +474,7 @@ const BookAppointment = () => {
                         {formData.reports ? formData.reports.name : "Click to upload files"}
                       </span>
                       {!formData.reports && (
-                        <span className="text-sm text-slate-400 mt-1">PDF, DOC, JPG up to 10MB</span>
+                        <span className="text-sm text-slate-400 mt-1">Images, PDF, DOC up to 10MB</span>
                       )}
                     </div>
                   </label>

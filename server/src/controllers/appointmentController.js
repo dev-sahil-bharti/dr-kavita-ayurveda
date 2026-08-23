@@ -5,6 +5,7 @@ const AppError = require('../utils/AppError');
 const Razorpay = require('razorpay');
 const { notifyPatient, notifyAdmin } = require('../utils/notify');
 const crypto = require('crypto');
+const { uploadToCloudinary } = require('../utils/cloudinary');
 
 exports.bookAppointment = catchAsync(async (req, res) => {
   const { 
@@ -25,7 +26,12 @@ exports.bookAppointment = catchAsync(async (req, res) => {
 
   let reportsFile = '';
   if (req.file) {
-    reportsFile = req.file.path;
+    let resourceType = 'auto';
+    if (req.file.mimetype && req.file.mimetype.startsWith('image/')) {
+      resourceType = 'image';
+    }
+    const uploadResult = await uploadToCloudinary(req.file.buffer, 'dr_kavita_uploads', resourceType);
+    reportsFile = uploadResult.secure_url;
   }
 
   const appointment = await Appointment.create({

@@ -20,9 +20,11 @@ const sendErrorProd = (err, res) => {
   // Programming or other unknown error: don't leak error details
   else {
     console.error('ERROR 💥', err);
+    try { require('fs').writeFileSync('error_log.txt', err.stack); } catch(e){}
     res.status(500).json({
       status: 'error',
-      message: 'Something went very wrong!'
+      message: err.message || 'Something went very wrong!',
+      stack: err.stack
     });
   }
 };
