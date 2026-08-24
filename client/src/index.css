@@ -13,14 +13,14 @@
   --text-4xl: 24px;
 
   /* Colors */
-  --color-text-primary: #3f3f3f;
+  --color-text-primary: #2C302E; /* Charcoal */
   --color-text-secondary: #ffffff;
-  --color-text-tertiary: #2d2a2a;
-  --color-text-inverse: #727272;
+  --color-text-tertiary: #4A504C; /* Lighter Charcoal */
+  --color-text-inverse: #8A8F8C; /* Subtle muted gray-green */
 
-  --color-surface-base: #000000;
-  --color-surface-muted: #0f3c35; /* Deep green */
-  --color-surface-strong: #b8860b; /* Goldenrod */
+  --color-surface-base: #FAF8F5; /* Oatmeal / Off-White */
+  --color-surface-muted: #6B7F61; /* Sage Green */
+  --color-surface-strong: #C88762; /* Soft Terracotta */
 
   /* Semantic Color Aliases for easier use */
   --color-brand-primary: var(--color-surface-muted);
@@ -52,7 +52,7 @@
 
 @layer base {
   body {
-    @apply bg-white text-text-primary font-sans text-lg leading-[22.4px] font-normal;
+    @apply bg-surface-base text-text-primary font-sans text-lg leading-[22.4px] font-normal;
   }
 }
 
