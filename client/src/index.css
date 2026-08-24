@@ -23,8 +23,8 @@
   --color-surface-strong: #C88762; /* Soft Terracotta */
 
   /* Semantic Color Aliases for easier use */
-  --color-brand-primary: var(--color-surface-muted);
-  --color-brand-accent: var(--color-surface-strong);
+  --color-brand-primary: #6B7F61;
+  --color-brand-accent: #C88762;
 
   /* Spacing Scale */
   --spacing-1: 2px;
@@ -35,7 +35,7 @@
   --spacing-6: 14px;
   --spacing-7: 20px;
   --spacing-8: 21px;
-
+  
   /* Radius */
   --radius-xs: 5px;
   --radius-sm: 50px;
