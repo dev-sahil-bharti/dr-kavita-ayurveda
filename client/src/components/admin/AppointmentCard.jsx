@@ -33,6 +33,15 @@ const AppointmentCard = ({ appointment, onUpdateStatus, onViewDetails }) => {
               <span className={`px-2 py-0.5 rounded-md border ${currentStatus.bg} ${currentStatus.text} ${currentStatus.border} uppercase tracking-wider text-[10px]`}>
                 {appointment.status}
               </span>
+              {appointment.paymentStatus && (
+                <span className={`px-2 py-0.5 rounded-md border uppercase tracking-wider text-[10px] ${
+                  appointment.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                  appointment.paymentStatus === 'unpaid' ? 'bg-orange-50 text-orange-600 border-orange-200' :
+                  'bg-slate-50 text-slate-600 border-slate-200'
+                }`}>
+                  {appointment.paymentStatus}
+                </span>
+              )}
               {appointment.isFirstVisit && (
                 <span className="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 border border-indigo-100 uppercase tracking-wider text-[10px]">
                   New

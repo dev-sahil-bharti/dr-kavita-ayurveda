@@ -30,7 +30,8 @@ const {
   acceptAppointment,
   getCalendarAppointments,
   checkInAppointment,
-  completeAppointment
+  completeAppointment,
+  markCashPaid
 } = require('../controllers/appointmentController');
 
 // Calendar (Make sure this comes before /:id routes to prevent 'calendar' being interpreted as an id)
@@ -40,5 +41,6 @@ router.get('/appointments/calendar', auth, getCalendarAppointments);
 router.patch('/appointments/:id/accept', auth, acceptAppointment);
 router.patch('/appointments/:id/checkin', auth, checkInAppointment);
 router.patch('/appointments/:id/complete', auth, completeAppointment);
+router.patch('/appointments/:id/mark-cash-paid', auth, markCashPaid);
 
 module.exports = router;

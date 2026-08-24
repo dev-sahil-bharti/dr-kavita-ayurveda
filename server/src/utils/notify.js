@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-exports.sendEmail = async (to, subject, text) => {
+exports.sendEmail = async (to, subject, text, attachments = []) => {
   try {
     if (!process.env.SMTP_USER) {
       console.warn('⚠️ SMTP_USER not configured. Skipping real email sent to:', to);
@@ -24,6 +24,7 @@ exports.sendEmail = async (to, subject, text) => {
       to,
       subject,
       text,
+      attachments,
     });
     console.log('✅ Email sent to', to);
   } catch (error) {

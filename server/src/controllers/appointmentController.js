@@ -6,6 +6,7 @@ const Razorpay = require('razorpay');
 const { notifyPatient, notifyAdmin } = require('../utils/notify');
 const crypto = require('crypto');
 const { uploadToCloudinary } = require('../utils/cloudinary');
+const { sendReceipt } = require('../utils/receipt');
 
 exports.bookAppointment = catchAsync(async (req, res) => {
   const { 
@@ -258,6 +259,31 @@ exports.checkInAppointment = catchAsync(async (req, res) => {
   await appointment.save();
 
   res.json({ success: true, message: 'Patient checked in', data: appointment });
+});
+
+
+// ==========================================
+// 5b. MARK CASH PAID (Admin Only)
+// ==========================================
+exports.markCashPaid = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const { amount } = req.body;
+
+  const appointment = await Appointment.findById(id).populate('patient', 'name email mobile');
+  if (!appointment) return res.status(404).json({ success: false, message: 'Not found' });
+
+  if (appointment.paymentStatus === 'paid') {
+    return res.status(400).json({ success: false, message: 'Appointment is already paid' });
+  }
+
+  appointment.paymentStatus = 'paid';
+  appointment.paymentMethod = 'cash';
+  appointment.amount = amount || 0;
+  await appointment.save();
+
+  await sendReceipt(appointment);
+
+  res.json({ success: true, message: 'Payment marked as cash', data: appointment });
 });
 
 

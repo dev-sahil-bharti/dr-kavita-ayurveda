@@ -76,6 +76,67 @@ const Appointments = () => {
     }
   };
 
+  const getPaymentBadge = (paymentStatus) => {
+    switch (paymentStatus) {
+      case 'unpaid': return (
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200">
+          Unpaid
+        </span>
+      );
+      case 'paid': return (
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
+          Paid
+        </span>
+      );
+      case 'refunded': return (
+        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-800 border border-gray-200">
+          Refunded
+        </span>
+      );
+      default: return null;
+    }
+  };
+
+  const handleOnlinePayment = async (appointmentId, amount = 500) => {
+    try {
+      setLoading(true);
+      const { data } = await api.post('/payment/create-order', { appointmentId, amount });
+      
+      const options = {
+        key: data.key,
+        amount: data.order.amount,
+        currency: data.order.currency,
+        name: "Dr. Kavita Ayurveda",
+        description: "Consultation Payment",
+        order_id: data.order.id,
+        handler: async function (response) {
+          try {
+            await api.post('/payment/verify', {
+              appointmentId,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            fetchAppointments();
+            alert('Payment Successful!');
+          } catch (err) {
+            alert('Payment verification failed.');
+          }
+        },
+        theme: {
+          color: "#059669"
+        }
+      };
+      
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      alert('Could not initiate payment. ' + (err.response?.data?.message || err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-end">
@@ -115,7 +176,10 @@ const Appointments = () => {
                   <div className="h-12 w-12 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-600">
                     <CalendarIcon className="h-6 w-6" />
                   </div>
-                  {getStatusBadge(app.status)}
+                  <div>
+                    {getStatusBadge(app.status)}
+                    {getPaymentBadge(app.paymentStatus)}
+                  </div>
                 </div>
                 
                 <h3 className="text-xl font-bold text-slate-800 mb-1">{app.therapy}</h3>
@@ -163,17 +227,37 @@ const Appointments = () => {
                 )}
               </div>
               
-              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                {app.status === 'pending' ? (
-                  <button className="text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center">
-                    <XCircle className="w-4 h-4 mr-1.5" />
-                    Cancel Appointment
-                  </button>
-                ) : (
-                  <span className="text-sm font-bold text-slate-600 flex items-center capitalize">
-                    <CheckCircle className="w-4 h-4 mr-1.5 text-emerald-500" />
-                    Status: {app.status}
-                  </span>
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div className="flex items-center w-full sm:w-auto">
+                  {app.status === 'pending' ? (
+                    <button className="text-sm font-bold text-red-600 hover:text-red-700 hover:bg-red-50 px-4 py-2 rounded-lg transition-colors flex items-center">
+                      <XCircle className="w-4 h-4 mr-1.5" />
+                      Cancel
+                    </button>
+                  ) : (
+                    <span className="text-sm font-bold text-slate-600 flex items-center capitalize">
+                      <CheckCircle className="w-4 h-4 mr-1.5 text-emerald-500" />
+                      Status: {app.status}
+                    </span>
+                  )}
+                </div>
+
+                {/* Payment Actions */}
+                {app.status !== 'cancelled' && app.paymentStatus === 'unpaid' && (
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button 
+                      onClick={() => alert('Payment will be collected at the clinic.')}
+                      className="flex-1 sm:flex-none text-xs font-bold text-slate-600 bg-white border border-slate-300 hover:bg-slate-100 px-4 py-2 rounded-lg transition-colors"
+                    >
+                      Pay at Clinic
+                    </button>
+                    <button 
+                      onClick={() => handleOnlinePayment(app._id, 500)} // Using 500 as default amount, ideally comes from backend based on service
+                      className="flex-1 sm:flex-none text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-lg transition-colors shadow-sm"
+                    >
+                      Pay Online
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

@@ -10,7 +10,7 @@ const PatientTable = ({ patients, onView, onEdit, onArchiveToggle }) => {
             <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
               Patient Name
             </th>
-            <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
+            <th scope="col" className="px-6 py-2 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
               Contact
             </th>
             <th scope="col" className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">

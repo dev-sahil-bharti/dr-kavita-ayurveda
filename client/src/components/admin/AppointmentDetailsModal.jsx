@@ -7,13 +7,17 @@ const AppointmentDetailsModal = ({
   onClose,
   onUpdateStatus,
   onRescheduleSubmit,
-  onCompleteSubmit
+  onCompleteSubmit,
+  onMarkCashPaid
 }) => {
   const [isRescheduling, setIsRescheduling] = useState(false);
   const [rescheduleData, setRescheduleData] = useState({ date: '', timeSlot: '' });
   
   const [isCompleting, setIsCompleting] = useState(false);
   const [completeData, setCompleteData] = useState({ doctorNote: '', followUpDate: '', sessionNumber: '', totalSessions: '' });
+
+  const [isMarkingCash, setIsMarkingCash] = useState(false);
+  const [cashAmount, setCashAmount] = useState('');
 
   // Confirmation states
   const [confirmAction, setConfirmAction] = useState(null);
@@ -82,6 +86,15 @@ const AppointmentDetailsModal = ({
                 {selectedAppointment.urgency === 'Immediate' && (
                   <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 border border-rose-100 uppercase tracking-wider text-[10px] font-bold">
                     Urgent
+                  </span>
+                )}
+                {selectedAppointment.paymentStatus && (
+                  <span className={`px-2 py-0.5 rounded-md border uppercase tracking-wider text-[10px] font-bold ${
+                    selectedAppointment.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                    selectedAppointment.paymentStatus === 'unpaid' ? 'bg-orange-50 text-orange-600 border-orange-200' :
+                    'bg-slate-50 text-slate-600 border-slate-200'
+                  }`}>
+                    {selectedAppointment.paymentStatus}
                   </span>
                 )}
               </div>
@@ -249,6 +262,37 @@ const AppointmentDetailsModal = ({
                   <button onClick={handleComplete} className="px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors">Submit & Complete</button>
                 </div>
               </div>
+           ) : isMarkingCash ? (
+              <div className="w-full flex flex-col sm:flex-row items-center gap-3 animate-fade-in-up">
+                <div className="flex-1 w-full">
+                  <label className="text-xs font-bold text-slate-500 mb-1 block">Amount Received (Rs)</label>
+                  <input 
+                    type="number" 
+                    className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-transparent outline-none"
+                    value={cashAmount}
+                    onChange={(e) => setCashAmount(e.target.value)}
+                    placeholder="e.g. 500"
+                  />
+                </div>
+                <div className="flex w-full sm:w-auto gap-2 sm:mt-5 ml-auto">
+                  <button 
+                    onClick={() => setIsMarkingCash(false)}
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    onClick={() => {
+                      if (!cashAmount) return toast.error('Enter amount');
+                      onMarkCashPaid(selectedAppointment._id, cashAmount);
+                      setIsMarkingCash(false);
+                    }}
+                    className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-orange-600 text-white hover:bg-orange-700 font-bold transition-colors shadow-lg shadow-orange-600/20"
+                  >
+                    Confirm Payment
+                  </button>
+                </div>
+              </div>
            ) : isRescheduling ? (
               <div className="w-full flex flex-col sm:flex-row items-center gap-3 animate-fade-in-up">
                 <input 
@@ -314,12 +358,20 @@ const AppointmentDetailsModal = ({
                   </>
                )}
                {(selectedAppointment.status === 'confirmed' || selectedAppointment.status === 'rescheduled') && (
-                  <button 
+                   <button 
                     onClick={() => setIsCompleting(true)}
                     className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
                   >
                     <Activity className="w-4 h-4 mr-2" />
                     Complete Consultation
+                  </button>
+               )}
+               {selectedAppointment.paymentStatus === 'unpaid' && selectedAppointment.status !== 'cancelled' && (
+                  <button 
+                    onClick={() => setIsMarkingCash(true)}
+                    className="w-full sm:w-auto flex items-center justify-center text-sm font-bold px-6 py-3 rounded-xl bg-orange-600 text-white hover:bg-orange-700 transition-colors shadow-lg shadow-orange-600/20"
+                  >
+                    Mark Cash Paid
                   </button>
                )}
                {selectedAppointment.status !== 'pending' && (

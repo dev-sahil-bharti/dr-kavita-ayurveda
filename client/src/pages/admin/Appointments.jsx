@@ -71,6 +71,18 @@ const Appointments = () => {
     }
   };
 
+  const handleMarkCashPaid = async (id, amount) => {
+    try {
+      await api.patch(`/admin/appointments/${id}/mark-cash-paid`, { amount });
+      fetchAppointments();
+      setSelectedAppointment(prev => ({ ...prev, paymentStatus: 'paid', amount, paymentMethod: 'cash' }));
+      toast.success('Payment marked as cash successfully');
+    } catch (error) {
+      console.error('Failed to mark cash paid', error);
+      toast.error(error.response?.data?.message || 'Failed to update payment status');
+    }
+  };
+
   const handleRescheduleSubmit = async (id, rescheduleData) => {
     if (!window.confirm('Do you really want to reschedule this appointment?')) return;
     try {
@@ -202,6 +214,7 @@ const Appointments = () => {
         onUpdateStatus={handleUpdateStatus}
         onRescheduleSubmit={handleRescheduleSubmit}
         onCompleteSubmit={handleCompleteSubmit}
+        onMarkCashPaid={handleMarkCashPaid}
       />
     </div>
   );
