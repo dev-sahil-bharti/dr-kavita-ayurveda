@@ -32,11 +32,13 @@ exports.sendOtp = catchAsync(async (req, res) => {
     throw new AppError('MSG91_OTP_TEMPLATE_ID is missing', 500);
   }
 
-  const url =
-    `https://control.msg91.com/api/v5/otp` +
-    `?template_id=${encodeURIComponent(templateId)}` +
-    `&mobile=${encodeURIComponent(formattedMobile)}` +
-    `&authkey=${encodeURIComponent(authKey)}`;
+  const postData = JSON.stringify({
+    template_id: templateId,
+    mobile: formattedMobile,
+    authkey: authKey
+  });
+
+  const url = `https://control.msg91.com/api/v5/otp`;
 
   console.log('Sending OTP to:', formattedMobile);
   console.log('MSG91 Template ID:', templateId);
@@ -47,7 +49,9 @@ exports.sendOtp = catchAsync(async (req, res) => {
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'authkey': authKey,
+          'Content-Length': Buffer.byteLength(postData)
         }
       },
       (response) => {
@@ -101,6 +105,7 @@ exports.sendOtp = catchAsync(async (req, res) => {
       );
     });
 
+    request.write(postData);
     request.end();
   });
 

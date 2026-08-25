@@ -11,7 +11,7 @@ const Gallery = () => {
   ];
 
   return (
-    <div className="bg-white min-h-screen py-16">
+    <div className="bg-surface-base min-h-screen py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h1 className="text-sm font-bold text-surface-strong uppercase tracking-wider mb-2">Our Gallery</h1>
@@ -19,7 +19,7 @@ const Gallery = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {images.map((img, idx) => (
-            <div key={idx} className="overflow-hidden rounded-xs shadow-3 group">
+            <div key={idx} className="overflow-hidden rounded-2xl shadow-sm border border-black/5 group">
               <img src={img} alt={`Gallery ${idx}`} className="w-full h-64 object-cover transform transition-transform duration-[400ms] group-hover:scale-110" />
             </div>
           ))}

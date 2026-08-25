@@ -94,6 +94,12 @@ exports.getAllAppointments = catchAsync(async (req, res) => {
   res.json({ status: 'success', data: appointments });
 });
 
+exports.getAppointmentsByPatient = catchAsync(async (req, res) => {
+  const { patientId } = req.params;
+  const appointments = await Appointment.find({ patient: patientId }).sort({ date: -1 });
+  res.json({ status: 'success', data: appointments });
+});
+
 exports.updateAppointmentStatus = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { status, date, timeSlot } = req.body;

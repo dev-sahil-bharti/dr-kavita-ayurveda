@@ -32,7 +32,7 @@ const Contact = () => {
   };
 
   return (
-    <div className="bg-white min-h-screen py-16">
+    <div className="bg-surface-base min-h-screen py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h1 className="text-sm font-bold text-surface-strong uppercase tracking-wider mb-2">Get In Touch</h1>
@@ -73,31 +73,31 @@ const Contact = () => {
           </div>
 
           {/* Form */}
-          <div className="lg:col-span-2 bg-slate-50 p-8 rounded-xs shadow-3 border border-text-inverse/10">
+          <div className="lg:col-span-2 bg-surface-base p-8 rounded-2xl shadow-sm border border-black/5">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-text-primary mb-2">Name</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
+                  <input type="text" name="name" value={formData.name} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-text-primary mb-2">Email</label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
+                  <input type="email" name="email" value={formData.email} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-bold text-text-primary mb-2">Mobile Number</label>
-                  <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
+                  <input type="tel" name="mobile" value={formData.mobile} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-text-primary mb-2">Subject</label>
-                  <input type="text" name="subject" value={formData.subject} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
+                  <input type="text" name="subject" value={formData.subject} onChange={handleChange} required className="w-full p-3 border border-text-inverse/20 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted" />
                 </div>
               </div>
               <div>
                 <label className="block text-sm font-bold text-text-primary mb-2">Message</label>
-                <textarea name="message" value={formData.message} onChange={handleChange} rows="5" required className="w-full p-3 border border-text-inverse/20 rounded-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted"></textarea>
+                <textarea name="message" value={formData.message} onChange={handleChange} rows="5" required className="w-full p-3 border border-text-inverse/20 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-muted"></textarea>
               </div>
               <button type="submit" disabled={isSubmitting} className="btn-primary py-3 px-8 text-lg disabled:opacity-50">
                 {isSubmitting ? 'Sending...' : 'Send Message'}

@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import api from '../../services/api';
 
 const PatientModal = ({ isOpen, onClose, patient, onSave }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({});
+  const [appointments, setAppointments] = useState([]);
+  const [activeTab, setActiveTab] = useState('profile');
+  const [loadingAppts, setLoadingAppts] = useState(false);
 
   useEffect(() => {
     if (patient) {
@@ -19,8 +23,24 @@ const PatientModal = ({ isOpen, onClose, patient, onSave }) => {
         consultationType: patient.consultationType || 'In-person'
       });
       setIsEditing(false);
+      setActiveTab('profile');
+
+      if (isOpen) {
+        const fetchAppointments = async () => {
+          setLoadingAppts(true);
+          try {
+            const res = await api.get(`/appointment/patient/${patient._id}`);
+            setAppointments(res.data.data);
+          } catch (error) {
+            console.error('Failed to fetch patient appointments');
+          } finally {
+            setLoadingAppts(false);
+          }
+        };
+        fetchAppointments();
+      }
     }
-  }, [patient]);
+  }, [patient, isOpen]);
 
   if (!isOpen || !patient) return null;
 
@@ -145,8 +165,9 @@ const PatientModal = ({ isOpen, onClose, patient, onSave }) => {
                   value={formData.address}
                   onChange={handleChange}
                   rows="2"
+                  placeholder="e.g., 123 Main St, City"
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                ></textarea>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Health Conditions</label>
@@ -155,8 +176,9 @@ const PatientModal = ({ isOpen, onClose, patient, onSave }) => {
                   value={formData.healthConditions}
                   onChange={handleChange}
                   rows="2"
+                  placeholder="e.g., Diabetes, Hypertension (or leave blank)"
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                ></textarea>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Current Medications</label>
@@ -165,8 +187,9 @@ const PatientModal = ({ isOpen, onClose, patient, onSave }) => {
                   value={formData.currentMedications}
                   onChange={handleChange}
                   rows="2"
+                  placeholder="e.g., Metformin 500mg (or leave blank)"
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
-                ></textarea>
+                />
               </div>
             </form>
           ) : (
@@ -181,41 +204,93 @@ const PatientModal = ({ isOpen, onClose, patient, onSave }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Contact Details</label>
-                  <p className="text-slate-800 font-medium">📞 {patient.mobile}</p>
-                  {patient.email && <p className="text-slate-800">✉️ {patient.email}</p>}
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Demographics</label>
-                  <p className="text-slate-800">Gender: <span className="font-medium">{patient.gender || 'N/A'}</span></p>
-                  <p className="text-slate-800">DOB: <span className="font-medium">{patient.dob ? new Date(patient.dob).toLocaleDateString() : 'N/A'}</span></p>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Address</label>
-                  <p className="text-slate-800">{patient.address || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Preferences</label>
-                  <p className="text-slate-800">Consultation: <span className="font-medium">{patient.consultationType || 'N/A'}</span></p>
-                </div>
+              {/* Tabs */}
+              <div className="flex border-b border-slate-200">
+                <button
+                  onClick={() => setActiveTab('profile')}
+                  className={`px-4 py-2 font-bold text-sm ${activeTab === 'profile' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Profile Information
+                </button>
+                <button
+                  onClick={() => setActiveTab('appointments')}
+                  className={`px-4 py-2 font-bold text-sm ${activeTab === 'appointments' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                  Appointments
+                </button>
               </div>
 
-              <div className="border-t border-slate-100 pt-6 space-y-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Health Conditions</label>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-slate-700 text-sm">
-                    {patient.healthConditions || 'None reported.'}
+              {activeTab === 'profile' ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Contact Details</label>
+                      <p className="text-slate-800 font-medium">📞 {patient.mobile}</p>
+                      {patient.email && <p className="text-slate-800">✉️ {patient.email}</p>}
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Demographics</label>
+                      <p className="text-slate-800">Gender: <span className="font-medium">{patient.gender || 'N/A'}</span></p>
+                      <p className="text-slate-800">DOB: <span className="font-medium">{patient.dob ? new Date(patient.dob).toLocaleDateString() : 'N/A'}</span></p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Address</label>
+                      <p className="text-slate-800">{patient.address || 'N/A'}</p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Preferences</label>
+                      <p className="text-slate-800">Consultation: <span className="font-medium">{patient.consultationType || 'N/A'}</span></p>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Current Medications</label>
-                  <div className="p-3 bg-slate-50 rounded-lg border border-slate-100 text-slate-700 text-sm">
-                    {patient.currentMedications || 'None reported.'}
+
+                  <div className="border-t border-slate-100 pt-6 space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Health Conditions</label>
+                      <p className="text-slate-800 text-sm">
+                        {patient.healthConditions || 'None reported.'}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Current Medications</label>
+                      <p className="text-slate-800 text-sm">
+                        {patient.currentMedications || 'None reported.'}
+                      </p>
+                    </div>
                   </div>
+                </>
+              ) : (
+                <div className="mt-4 space-y-4 max-h-80 overflow-y-auto pr-2">
+                  {loadingAppts ? (
+                    <div className="flex justify-center p-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+                    </div>
+                  ) : appointments.length > 0 ? (
+                    appointments.map(appt => (
+                      <div key={appt._id} className="p-4 border border-slate-200 rounded-xl bg-slate-50 flex flex-col sm:flex-row justify-between gap-4">
+                        <div>
+                          <p className="font-bold text-slate-800">{new Date(appt.date).toLocaleDateString()} at {appt.timeSlot}</p>
+                          <p className="text-sm text-slate-600">Service: <span className="font-medium">{appt.preferredService}</span></p>
+                          <p className="text-sm text-slate-600">Consultation: <span className="font-medium">{appt.consultationType}</span></p>
+                        </div>
+                        <div className="flex flex-col items-end">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider 
+                            ${appt.status === 'pending' ? 'bg-amber-100 text-amber-700' : ''}
+                            ${appt.status === 'confirmed' ? 'bg-blue-100 text-blue-700' : ''}
+                            ${appt.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : ''}
+                            ${appt.status === 'cancelled' ? 'bg-red-100 text-red-700' : ''}
+                            ${appt.status === 'rescheduled' ? 'bg-purple-100 text-purple-700' : ''}
+                          `}>
+                            {appt.status}
+                          </span>
+                          <span className="text-xs text-slate-500 mt-2">ID: {appt._id.substring(0,8)}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-slate-500 text-center py-6">No appointments booked yet.</p>
+                  )}
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>

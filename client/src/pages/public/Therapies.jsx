@@ -12,7 +12,7 @@ const Therapies = () => {
   ];
 
   return (
-    <div className="bg-white min-h-screen py-16">
+    <div className="bg-surface-base min-h-screen py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h1 className="text-sm font-bold text-surface-strong uppercase tracking-wider mb-2">Healing Procedures</h1>
@@ -21,8 +21,8 @@ const Therapies = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {therapiesList.map((item, idx) => (
-            <div key={idx} className="bg-slate-50 p-8 rounded-xs border border-text-inverse/10 hover:shadow-3 hover:-translate-y-1 transition-all duration-[300ms] group">
-              <div className="w-12 h-12 bg-surface-strong/10 rounded-xs flex items-center justify-center mb-6 group-hover:bg-surface-strong group-hover:text-white transition-colors">
+            <div key={idx} className="bg-surface-base p-8 rounded-2xl border border-black/5 hover:shadow-md hover:-translate-y-1 transition-all duration-[300ms] group">
+              <div className="w-12 h-12 bg-surface-strong/10 rounded-xl flex items-center justify-center mb-6 group-hover:bg-surface-strong group-hover:text-white transition-colors">
                 <Activity className="h-6 w-6 text-surface-strong group-hover:text-white" />
               </div>
               <h3 className="text-xl font-bold text-text-primary mb-3">{item.title}</h3>

@@ -13,18 +13,18 @@
   --text-4xl: 24px;
 
   /* Colors */
-  --color-text-primary: #2C302E; /* Charcoal */
-  --color-text-secondary: #ffffff;
-  --color-text-tertiary: #4A504C; /* Lighter Charcoal */
-  --color-text-inverse: #8A8F8C; /* Subtle muted gray-green */
+  --color-text-primary: #1A2421; /* Dark Forest/Charcoal for high contrast readability */
+  --color-text-secondary: #FFFFFF; /* White for text on dark backgrounds */
+  --color-text-tertiary: #4A5D54; /* Muted Forest Green for secondary text */
+  --color-text-inverse: #8CA095; /* Soft grey-green */
 
-  --color-surface-base: #FAF8F5; /* Oatmeal / Off-White */
-  --color-surface-muted: #6B7F61; /* Sage Green */
-  --color-surface-strong: #C88762; /* Soft Terracotta */
+  --color-surface-base: #F9F6F0; /* Warm Ivory / Off-White */
+  --color-surface-muted: #06391aff; /* Modern Emerald/Healing Green */
+  --color-surface-strong: #e07a5fff; /* Warm Terracotta / Saffron Accent */
 
   /* Semantic Color Aliases for easier use */
-  --color-brand-primary: #6B7F61;
-  --color-brand-accent: #C88762;
+  --color-brand-primary: #2D6A4F;
+  --color-brand-accent: #E07A5F;
 
   /* Spacing Scale */
   --spacing-1: 2px;
