@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, Activity, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
-import AppointmentCard from '../../components/admin/AppointmentCard';
-import api from '../../services/api';
+import AppointmentCard from '../components/AppointmentCard';
+import api from '../../../services/api';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);

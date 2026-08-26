@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Eye, Trash2, Download } from 'lucide-react';
-import api from '../../services/api';
+import api from '../../../services/api';
 import toast from 'react-hot-toast';
 
 const Inquiries = () => {

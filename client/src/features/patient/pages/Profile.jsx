@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../../context/AuthContext';
 import { Lock, Save, User, Phone, Eye, EyeOff } from 'lucide-react';
-import api from '../../services/api';
+import api from '../../../services/api';
 
 const PatientProfile = () => {
   const { user } = useAuth();

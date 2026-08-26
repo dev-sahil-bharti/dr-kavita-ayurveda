@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar as CalendarIcon, Clock, User, CheckCircle, Activity, Banknote, ChevronLeft, ChevronRight } from 'lucide-react';
-import api from '../../services/api';
+import api from '../../../services/api';
 
 const CalendarView = ({ onSelectAppointment }) => {
   const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString('en-CA')); // YYYY-MM-DD

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import AppointmentCard from '../../components/admin/AppointmentCard';
+import AppointmentCard from '../components/AppointmentCard';
 import { Calendar, Loader2 } from 'lucide-react';
-import api from '../../services/api';
+import api from '../../../services/api';
 import toast from 'react-hot-toast';
 
-import CalendarView from '../../components/admin/CalendarView';
-import AppointmentDetailsModal from '../../components/admin/AppointmentDetailsModal';
+import CalendarView from '../components/CalendarView';
+import AppointmentDetailsModal from '../components/AppointmentDetailsModal';
 
 const Appointments = () => {
   const location = useLocation();

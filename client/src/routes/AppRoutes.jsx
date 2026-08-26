@@ -1,35 +1,35 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import ProtectedRoute from '../components/common/ProtectedRoute';
+import ProtectedRoute from './ProtectedRoute';
 
 // Admin Components & Pages
-import Sidebar from '../components/admin/Sidebar';
-import Navbar from '../components/admin/Navbar';
-import Dashboard from '../pages/admin/Dashboard';
-import AdminPatients from '../pages/admin/Patients';
-import AdminAppointments from '../pages/admin/Appointments';
-import AdminTherapies from '../pages/admin/Therapies';
-import AdminLogin from '../pages/admin/Login';
-import AdminProfile from '../pages/admin/Profile';
-import AdminInquiries from '../pages/admin/Inquery';
-import AdminSettings from '../pages/admin/Setting';
+import Sidebar from '../features/admin/components/Sidebar';
+import Navbar from '../features/admin/components/Navbar';
+import Dashboard from '../features/admin/pages/Dashboard';
+import AdminPatients from '../features/admin/pages/Patients';
+import AdminAppointments from '../features/admin/pages/Appointments';
+import AdminTherapies from '../features/admin/pages/Therapies';
+import AdminLogin from '../features/auth/pages/AdminLogin';
+import AdminProfile from '../features/admin/pages/Profile';
+import AdminInquiries from '../features/admin/pages/Inquery';
+import AdminSettings from '../features/admin/pages/Setting';
 
-import PatientLogin from '../pages/patient/Login';
-import PatientRegister from '../pages/patient/Register';
+import PatientLogin from '../features/auth/pages/PatientLogin';
+import PatientRegister from '../features/auth/pages/PatientRegister';
 
-import BookAppointment from '../pages/patient/BookAppointment';
-import PatientAppointments from '../pages/patient/Appointments';
-import PatientProfile from '../pages/patient/Profile';
+import BookAppointment from '../features/patient/pages/BookAppointment';
+import PatientAppointments from '../features/patient/pages/Appointments';
+import PatientProfile from '../features/patient/pages/Profile';
 
 // Public Pages
-import Home from '../pages/public/Home';
-import About from '../pages/public/About';
-import Contact from '../pages/public/Contact';
-import Gallery from '../pages/public/Gallery';
-import Panchakarma from '../pages/public/Panchakarma';
-import Therapies from '../pages/public/Therapies';
-import PrivacyPolicy from '../pages/public/PrivacyPolicy';
-import TermsOfService from '../pages/public/TermsOfService';
+import Home from '../features/public/pages/Home';
+import About from '../features/public/pages/About';
+import Contact from '../features/public/pages/Contact';
+import Gallery from '../features/public/pages/Gallery';
+import Panchakarma from '../features/public/pages/Panchakarma';
+import Therapies from '../features/public/pages/Therapies';
+import PrivacyPolicy from '../features/public/pages/PrivacyPolicy';
+import TermsOfService from '../features/public/pages/TermsOfService';
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,10 +50,10 @@ const AdminLayout = ({ children }) => {
   );
 };
 
-import PublicNavbar from '../components/common/Navbar';
-import Footer from '../components/common/Footer';
-import PatientNavbar from '../components/patient/Navbar';
-import PatientSidebar from '../components/patient/Sidebar';
+import PublicNavbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
+import PatientNavbar from '../features/patient/components/Navbar';
+import PatientSidebar from '../features/patient/components/Sidebar';
 
 const PatientLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);

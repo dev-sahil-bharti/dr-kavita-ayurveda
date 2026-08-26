@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import api from '../services/api';
+import api from '../../../services/api';
 import { Mail, Phone, Lock, Eye, EyeOff, ShieldAlert, CheckCircle, X, ArrowRight } from 'lucide-react';
 
 const ForgotPasswordModal = ({ isOpen, onClose, userType }) => {

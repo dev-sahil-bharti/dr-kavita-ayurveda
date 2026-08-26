@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import PatientTable from '../../components/admin/PatientTable';
-import PatientModal from '../../components/admin/PatientModal';
+import PatientTable from '../components/PatientTable';
+import PatientModal from '../components/PatientModal';
 import { Search, Filter, Plus } from 'lucide-react';
-import api from '../../services/api';
+import api from '../../../services/api';
 import toast from 'react-hot-toast';
 
 const Patients = () => {

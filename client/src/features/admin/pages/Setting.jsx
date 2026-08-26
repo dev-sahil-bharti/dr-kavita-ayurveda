@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Building, Bell, Shield, Save, Moon, Sun, Monitor } from 'lucide-react';
 import toast from 'react-hot-toast';
-import api from '../../services/api';
+import api from '../../../services/api';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
-import api from '../../services/api';
+import api from '../../../services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({

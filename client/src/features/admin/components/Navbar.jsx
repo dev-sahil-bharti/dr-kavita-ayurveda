@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Menu, Search, Bell, Check, User, Calendar, MessageSquare } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import api from '../../services/api';
+import { useAuth } from '../../../context/AuthContext';
+import api from '../../../services/api';
 
 const Navbar = ({ toggleSidebar }) => {
   const { user } = useAuth();
