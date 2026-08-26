@@ -94,7 +94,7 @@ const Register = () => {
         <div className="w-full lg:w-1/2 p-8 sm:p-12 xl:p-16 flex flex-col justify-center order-2 lg:order-1">
           <div className="w-full max-w-md mx-auto space-y-6">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Create Account</h2>
+              {/* <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Create Account</h2> */}
               <p className="mt-2 text-sm sm:text-base text-slate-500">Join Dr. Kavita Ayurveda today.</p>
             </div>
 
