@@ -13,25 +13,8 @@ app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
-const adminRoutes = require('./routes/adminRoutes');
-const patientRoutes = require('./routes/patientRoutes');
-const inquiryRoutes = require('./routes/inquiryRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
-const notificationRoutes = require('./routes/notificationRoutes');
-const otpRoutes = require('./routes/otpRoutes');
-const paymentRoutes = require('./routes/paymentRoutes');
-const settingRoutes = require('./routes/settingRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
-
-app.use('/api/admin', adminRoutes);
-app.use('/api/patient', patientRoutes);
-app.use('/api/inquiries', inquiryRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/notifications', notificationRoutes);
-app.use('/api/otp', otpRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/settings', settingRoutes);
-app.use('/api/upload', uploadRoutes);
+const routes = require('./routes');
+app.use('/api', routes);
 
 // Basic route
 app.get('/', (req, res) => {

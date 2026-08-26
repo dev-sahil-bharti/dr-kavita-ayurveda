@@ -1,4 +1,4 @@
-// index.js
+// server.js
 require("node:dns/promises").setServers(["1.1.1.1", "8.8.8.8"]);
 
 const dotenv = require("dotenv");
