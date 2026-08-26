@@ -138,8 +138,8 @@ exports.updateAppointmentStatus = catchAsync(async (req, res) => {
       recipient: appointment.patient._id || appointment.patient
     });
     
-    if (status === 'rescheduled') {
-      await notifyPatient(appointment, 'rescheduled');
+    if (['confirmed', 'cancelled', 'rescheduled'].includes(status)) {
+      await notifyPatient(appointment, status);
     }
   }
 

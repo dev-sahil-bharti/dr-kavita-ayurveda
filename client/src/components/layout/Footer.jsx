@@ -43,12 +43,12 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-gray-400">
               {[
                 { name: 'Home', path: '/' },
-                { name: 'About Us', path: '/aboutus' },
+                { name: 'Panchakarma', path: '/panchakarma' },
                 { name: 'Therapies', path: '/therapies' },
                 { name: 'Gallery', path: '/gallery' },
-                { name: 'Testimonials', path: '/testimonials' },
-                { name: 'Contact Us', path: '/contactus' },
-                { name: 'Admin Dashboard', path: '/admin/dashboard' }
+                { name: 'About Us', path: '/about' },
+                { name: 'Contact Us', path: '/contact' },
+                { name: 'Admin Dashboard', path: '/admin/login' },
               ].map((item) => (
                 <li key={item.name}>
                   <Link to={item.path} className="hover:text-surface-strong transition-colors flex items-center group">

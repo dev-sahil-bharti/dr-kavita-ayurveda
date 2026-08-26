@@ -89,22 +89,31 @@ const PublicNavbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-7 font-bold text-[13px] tracking-wider">
-            {navLinks.map((item) => (
-              <Link
-                key={item.name}
-                to={item.path}
-                className="relative group flex items-center hover:text-[#b48608] transition-colors py-2"
-              >
-                {item.name}
-                {item.hasDropdown && <ChevronDown className="w-4 h-4 ml-1 opacity-70" />}
+          {/* Desktop Navigation & Actions */}
+          <div className="hidden lg:flex items-center">
+            <nav className="flex items-center space-x-7 font-bold text-[13px] tracking-wider mr-8">
+              {navLinks.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.path}
+                  className="relative group flex items-center hover:text-[#b48608] transition-colors py-2"
+                >
+                  {item.name}
+                  {item.hasDropdown && <ChevronDown className="w-4 h-4 ml-1 opacity-70" />}
 
-                {/* Hover Underline */}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#b48608] transition-all group-hover:w-full"></span>
-              </Link>
-            ))}
-          </nav>
+                  {/* Hover Underline */}
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#b48608] transition-all group-hover:w-full"></span>
+                </Link>
+              ))}
+            </nav>
+            <Link 
+              to="/patient/register" 
+              className="bg-[#b48608] hover:bg-[#9a7307] text-white px-6 py-2.5 rounded-full font-bold text-[13px] tracking-widest shadow-md transition-all hover:-translate-y-0.5 flex items-center gap-2"
+            >
+              <Calendar className="w-4 h-4" />
+              BOOK APPOINTMENT
+            </Link>
+          </div>
 
           {/* Mobile Menu Toggle */}
           <button

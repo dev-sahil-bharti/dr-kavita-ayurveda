@@ -1,239 +1,257 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Leaf, HeartPulse, Activity, CheckCircle, ShieldCheck, Sparkles } from 'lucide-react';
+import { ArrowRight, Leaf, HeartPulse, Activity, CheckCircle, ShieldCheck, Sparkles, Droplets, Flower2, Clock } from 'lucide-react';
+
 const Home = () => {
   const [currentImage, setCurrentImage] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const heroImages = [
-    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80', // Minimalist neutral spa setting
-    'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80', // Warm tone organic aesthetic
-    'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80', // Aesthetic spa elements on neutral background
-    'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'  // Neutral tone wellness, minimalist setup
+    'https://images.unsplash.com/photo-1540555700478-4be289fbecef?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80',
+    'https://images.unsplash.com/photo-1616394584738-fc6e612e71b9?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80'
   ];
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImage((prevImage) => (prevImage + 1) % heroImages.length);
-    }, 4000); // 4 seconds
-
-    return () => clearInterval(timer);
+      setCurrentImage((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      clearInterval(timer);
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
-    <div className="bg-surface-base">
-
-      {/* Hero Section */}
-      <section className="relative bg-surface-muted overflow-hidden min-h-[90vh] flex items-center justify-center">
-        {/* Background image carousel */}
+    <div className="bg-surface-base font-sans overflow-hidden selection:bg-surface-strong/30 selection:text-surface-strong">
+      
+      {/* Dynamic Hero Section */}
+      <section className="relative min-h-[95vh] flex items-center justify-center overflow-hidden">
         {heroImages.map((img, index) => (
           <div
             key={index}
-            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${index === currentImage ? 'opacity-100 scale-105' : 'opacity-0 scale-100'}`}
+            className={`absolute inset-0 transition-all duration-1000 ease-[cubic-bezier(0.4,0,0.2,1)] ${index === currentImage ? 'opacity-100 scale-100' : 'opacity-0 scale-105'}`}
           >
-            <img
-              src={img} 
-              alt={`Ayurveda Background ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
+            <img src={img} alt="Hero Background" className="w-full h-full object-cover origin-center" />
           </div>
         ))}
+        
+        {/* Soft elegant gradients */}
+        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-0" />
+        <div className="absolute inset-0 bg-gradient-to-t from-surface-muted/60 to-transparent z-0 mix-blend-multiply" />
+        
+        {/* Content */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-32 flex flex-col items-start">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-xs md:text-sm font-semibold tracking-wide uppercase mb-6 shadow-xl animate-fade-in-up">
+            <Sparkles className="h-4 w-4 text-surface-strong animate-pulse" />
+            <span className="opacity-90">Welcome to Dr. Kavita Ayurveda</span>
+          </div>
 
-        {/* Gradient overlays for mood & readability */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent z-0" />
-        <div className="absolute inset-0 bg-gradient-to-t from-surface-strong/30 to-transparent z-0 mix-blend-multiply" />
-
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32 flex flex-col items-start text-left">
-          <span className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-sm font-semibold tracking-wide uppercase mb-8 shadow-xl animate-fade-in-up">
-            <Sparkles className="h-4 w-4 text-surface-strong" />
-            Welcome to Dr. Kavita Ayurveda
-          </span>
-
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight mb-6 max-w-3xl leading-tight text-white animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-            Authentic Ayurvedic <br className="hidden sm:block" />
-            Healing in <span className="text-surface-strong">Farrukhabad</span>
+          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight mb-6 max-w-4xl leading-[1.1] text-white animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+            Awaken Your <br className="hidden sm:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-surface-strong to-orange-300">Natural Harmony</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-white/90 mb-10 max-w-2xl font-medium animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            Experience profound healing, authentic wellness, and personalized treatments rooted in the 5,000-year-old ancient wisdom of Ayurveda.
+          <p className="text-lg sm:text-xl md:text-2xl text-white/80 mb-12 max-w-2xl font-light leading-relaxed animate-fade-in-up" style={{ animationDelay: '200ms' }}>
+            Experience deep rejuvenation and holistic healing through 5,000-year-old authentic Ayurvedic wisdom, personalized just for you.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="flex flex-col sm:flex-row gap-5 w-full sm:w-auto animate-fade-in-up" style={{ animationDelay: '300ms' }}>
             <Link
               to="/patient/register"
-              className="group flex items-center justify-center gap-2 text-lg font-bold px-8 py-4 bg-surface-strong hover:bg-surface-strong/90 text-white rounded-full shadow-lg shadow-surface-strong/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group flex items-center justify-center gap-3 text-lg font-bold px-8 py-4 bg-surface-strong hover:bg-surface-strong/90 text-white rounded-full shadow-[0_8px_30px_rgb(224,122,95,0.3)] transition-all duration-300 hover:shadow-[0_8px_30px_rgb(224,122,95,0.5)] hover:-translate-y-1"
             >
-              Book Consultation
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              to="/contact"
-              className="group flex items-center justify-center gap-2 text-lg font-bold px-8 py-4 bg-surface-strong hover:bg-surface-strong/90 text-white rounded-full shadow-lg shadow-surface-strong/30 transition-all hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Contact
+              Start Healing Journey
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
             <a
               href="#specialities"
-              className="flex items-center justify-center text-lg font-bold px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-full border border-white/30 backdrop-blur-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="group flex items-center justify-center gap-3 text-lg font-bold px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-full border border-white/20 backdrop-blur-md transition-all duration-300 hover:-translate-y-1"
             >
-              Explore Specialities
+              Explore Therapies
             </a>
           </div>
 
-          {/* Image indicator dots */}
-          <div className="flex gap-3 mt-16 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+          <div className="flex gap-3 mt-20 animate-fade-in-up" style={{ animationDelay: '400ms' }}>
             {heroImages.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentImage(index)}
-                className={`h-2 rounded-full transition-all duration-500 ${index === currentImage ? 'w-10 bg-surface-strong' : 'w-2 bg-white/40 hover:bg-white/60'}`}
-                aria-label={`Go to slide ${index + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-500 ${index === currentImage ? 'w-12 bg-surface-strong shadow-[0_0_10px_rgba(224,122,95,0.8)]' : 'w-4 bg-white/30 hover:bg-white/50'}`}
+                aria-label={`Slide ${index + 1}`}
               />
             ))}
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="py-24 bg-surface-base relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-surface-muted/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-surface-strong/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+      {/* Philosophy / About Section */}
+      <section className="py-24 relative overflow-hidden bg-white">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-surface-muted/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-surface-strong/5 rounded-full blur-3xl translate-y-1/3 -translate-x-1/3"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
-            <div className="order-2 lg:order-1 relative group">
-              <div className="absolute inset-0 bg-surface-strong/20 rounded-2xl transform rotate-3 scale-[1.02] group-hover:rotate-6 transition-transform duration-500"></div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            
+            {/* Image Composition */}
+            <div className="order-2 lg:order-1 relative group h-full">
+              <div className="absolute inset-0 bg-gradient-to-tr from-surface-muted/20 to-surface-strong/10 rounded-3xl transform -rotate-3 scale-[1.03] group-hover:rotate-0 transition-transform duration-700 ease-out"></div>
               <img
-                src="https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&q=80&w=800"
+                src="https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&q=80&w=1000"
                 alt="Ayurvedic Herbs"
-                className="relative rounded-2xl shadow-xl object-cover w-full h-[400px] sm:h-[500px] transform transition-transform duration-500 group-hover:-translate-y-2 group-hover:translate-x-2"
+                className="relative rounded-3xl shadow-2xl object-cover w-full h-[500px] lg:h-[600px] transform transition-transform duration-700 hover:scale-[1.01]"
               />
-              <div className="absolute -bottom-8 -left-4 sm:-left-8 bg-surface-base p-6 rounded-2xl shadow-2xl border border-black/5 flex items-center gap-5 transform transition-transform duration-500 group-hover:-translate-y-4">
-                <div className="bg-surface-muted/10 p-4 rounded-xl text-surface-strong">
+              
+              {/* Floating Glass Card */}
+              <div className="absolute -bottom-6 -right-6 lg:-right-12 bg-white/80 backdrop-blur-xl p-6 lg:p-8 rounded-3xl shadow-2xl border border-white/50 flex items-center gap-6 transform transition-transform duration-500 hover:-translate-y-2">
+                <div className="bg-surface-muted p-4 rounded-2xl text-white shadow-lg shadow-surface-muted/30">
                   <HeartPulse className="w-8 h-8" />
                 </div>
                 <div>
-                  <p className="text-3xl sm:text-4xl font-bold text-text-primary">15k+</p>
-                  <p className="text-sm font-bold text-text-inverse uppercase tracking-wider mt-1">Happy Patients</p>
+                  <p className="text-4xl font-extrabold text-surface-muted">15k+</p>
+                  <p className="text-sm font-bold text-text-tertiary uppercase tracking-widest mt-1">Lives Touched</p>
                 </div>
               </div>
             </div>
             
-            <div className="order-1 lg:order-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-surface-strong/10 text-surface-strong rounded-full text-sm font-bold uppercase tracking-wider mb-6">
-                <Leaf className="w-4 h-4" /> About Us
+            {/* Text Content */}
+            <div className="order-1 lg:order-2 space-y-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-surface-muted/5 text-surface-muted rounded-full text-sm font-bold uppercase tracking-widest border border-surface-muted/10">
+                <Leaf className="w-4 h-4" /> The Root of Healing
               </div>
-              <h3 className="text-4xl sm:text-5xl font-extrabold text-text-primary mb-6 leading-tight">
-                The Ancient Path to <br/> <span className="text-surface-strong">Modern Wellness</span>
-              </h3>
-              <p className="text-lg text-text-tertiary mb-8 leading-relaxed">
-                Ayurveda is a 5,000-year-old system of natural healing that has its origins in the Vedic culture of India. It is considered by many scholars to be the oldest healing science.
-                At Dr. Kavita Ayurveda Panchakarma Clinic, we offer authentic treatments that focus on the root cause of the disease rather than just the symptoms.
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-text-primary leading-[1.15]">
+                Balance your <span className="text-transparent bg-clip-text bg-gradient-to-r from-surface-muted to-green-600">Body & Mind</span>
+              </h2>
+              <p className="text-lg md:text-xl text-text-tertiary leading-relaxed font-light">
+                At Dr. Kavita Ayurveda, we don’t just treat symptoms; we seek the root cause. Using personalized holistic therapies, rare herbal formulations, and timeless Vedic science, we restore your body's innate ability to heal itself.
               </p>
               
-              <div className="grid sm:grid-cols-2 gap-4 mb-10">
+              <div className="grid sm:grid-cols-2 gap-4 pt-4">
                 {[
-                  '100% Authentic Treatments',
-                  'Expert Vaidyas',
-                  'Personalized Diet Plans',
-                  'Modern Panchakarma Facilities'
+                  { text: 'Nadi Pariksha Diagnosis', icon: Activity },
+                  { text: 'Authentic Panchakarma', icon: Droplets },
+                  { text: 'Customized Diet Plans', icon: Flower2 },
+                  { text: 'Pure Herbal Medicines', icon: CheckCircle }
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center text-text-primary font-medium bg-surface-base p-3 rounded-lg shadow-sm border border-black/5">
-                    <CheckCircle className="h-5 w-5 text-surface-strong mr-3 shrink-0" />
-                    {item}
+                  <div key={i} className="flex items-center gap-4 bg-surface-base p-4 rounded-2xl hover:bg-white hover:shadow-md transition-all duration-300 border border-transparent hover:border-surface-muted/10">
+                    <div className="bg-surface-strong/10 p-2 rounded-lg text-surface-strong">
+                      <item.icon className="h-5 w-5" />
+                    </div>
+                    <span className="font-semibold text-text-primary">{item.text}</span>
                   </div>
                 ))}
               </div>
               
-              <Link to="/about" className="inline-flex items-center gap-2 font-bold text-lg text-surface-strong hover:text-surface-strong/80 transition-colors group">
-                Discover our full journey 
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-              </Link>
+              <div className="pt-6">
+                <Link to="/about" className="group inline-flex items-center gap-3 font-bold text-lg text-surface-muted hover:text-surface-muted/80 transition-colors">
+                  <span className="border-b-2 border-surface-muted/30 group-hover:border-surface-muted transition-colors pb-1">Discover Our Philosophy</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* OPDs / Specialities Section */}
-      <section id="specialities" className="py-24 bg-surface-base">
+      <section id="specialities" className="py-24 lg:py-32 bg-surface-base relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16 sm:mb-20">
-            <span className="inline-block px-3 py-1 bg-surface-muted/10 text-surface-muted rounded-full text-sm font-bold uppercase tracking-wider mb-4">Our Specialities</span>
-            <h3 className="text-4xl sm:text-5xl font-extrabold text-text-primary mb-6">Holistic Care Domains</h3>
-            <p className="text-lg text-text-tertiary max-w-2xl mx-auto">
-              We specialize in deep healing through targeted OPDs and authentic Panchakarma therapies led by experienced vaidyas.
+          
+          <div className="text-center mb-20 max-w-3xl mx-auto space-y-6">
+            <span className="inline-block px-4 py-2 bg-surface-strong/10 text-surface-strong rounded-full text-sm font-bold uppercase tracking-widest">Targeted Healing</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-text-primary">Clinical Specialities</h2>
+            <p className="text-xl text-text-tertiary font-light">
+              Expert care for chronic conditions through natural, time-tested Ayurvedic protocols.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[
-              { title: 'Panchakarma Therapy', desc: 'Complete detoxification and rejuvenation of the body, mind, and spirit.', icon: Leaf },
-              { title: 'Joint & Spine Care', desc: 'Effective natural treatments for arthritis, spondylosis, and chronic back pain.', icon: Activity },
-              { title: 'Skin & Hair Care', desc: 'Root-cause Ayurvedic solutions for psoriasis, eczema, and persistent hair fall.', icon: ShieldCheck },
-              { title: 'Women\'s Health', desc: 'Specialized holistic care for PCOD, menopause, and infertility issues.', icon: HeartPulse },
-              { title: 'Digestive Disorders', desc: 'Lasting treatments for IBS, chronic acidity, and persistent constipation.', icon: Activity },
-              { title: 'Stress Management', desc: 'Calming Shirodhara and targeted therapies for anxiety, depression, and insomnia.', icon: Leaf },
+              { title: 'Panchakarma', desc: 'Deep cellular detoxification and rejuvenation of mind and body.', icon: Droplets, color: 'from-blue-500/20 to-blue-600/20', text: 'text-blue-600' },
+              { title: 'Joint & Spine', desc: 'Therapies for arthritis, sciatica, and chronic musculoskeletal pain.', icon: Activity, color: 'from-surface-strong/20 to-orange-500/20', text: 'text-surface-strong' },
+              { title: 'Skin & Hair', desc: 'Root-cause healing for psoriasis, eczema, acne, and hair fall.', icon: Sparkles, color: 'from-pink-500/20 to-rose-500/20', text: 'text-pink-600' },
+              { title: 'Women\'s Health', desc: 'Holistic management of PCOD, menopause, and hormonal imbalances.', icon: HeartPulse, color: 'from-purple-500/20 to-purple-600/20', text: 'text-purple-600' },
+              { title: 'Gut Health', desc: 'Lasting treatments for IBS, chronic acidity, and digestive disorders.', icon: Leaf, color: 'from-surface-muted/20 to-green-600/20', text: 'text-surface-muted' },
+              { title: 'Stress & Sleep', desc: 'Shirodhara and therapies for anxiety, depression, and insomnia.', icon: Flower2, color: 'from-indigo-500/20 to-indigo-600/20', text: 'text-indigo-600' },
             ].map((spec, i) => (
-              <div key={i} className="bg-surface-base p-8 rounded-2xl border border-black/5 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-                <div className="w-16 h-16 bg-surface-muted/5 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-surface-strong group-hover:scale-110 transition-all duration-300">
-                  <spec.icon className="h-8 w-8 text-surface-muted group-hover:text-white transition-colors" />
+              <div key={i} className="group relative bg-white p-8 rounded-3xl border border-black/5 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br opacity-50 rounded-bl-full -mr-8 -mt-8 transition-transform group-hover:scale-150 duration-500 z-0"></div>
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 relative z-10 bg-gradient-to-br ${spec.color}`}>
+                  <spec.icon className={`h-8 w-8 ${spec.text}`} />
                 </div>
-                <h4 className="text-xl font-bold text-text-primary mb-3 group-hover:text-surface-strong transition-colors">{spec.title}</h4>
-                <p className="text-text-tertiary leading-relaxed">{spec.desc}</p>
+                <h3 className="text-2xl font-bold text-text-primary mb-4 relative z-10">{spec.title}</h3>
+                <p className="text-text-tertiary leading-relaxed relative z-10 font-light">{spec.desc}</p>
+                
+                <div className="mt-8 flex items-center gap-2 text-sm font-bold text-text-primary group-hover:text-surface-strong transition-colors relative z-10">
+                  Learn more <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Process Section */}
-      <section className="py-24 bg-surface-muted text-white relative overflow-hidden">
-        {/* Background elements */}
-        <div className="absolute inset-0 bg-surface-strong/10"></div>
-        <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+      {/* The Journey Section */}
+      <section className="py-24 lg:py-32 bg-surface-muted text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1596755389378-c31d21fd1273?q=80&w=2000')] opacity-5 bg-cover bg-center mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-surface-muted via-surface-muted/95 to-surface-muted/90"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="text-center mb-20">
-            <span className="inline-block px-3 py-1 bg-surface-strong/20 text-surface-strong rounded-full text-sm font-bold uppercase tracking-wider mb-4 border border-surface-strong/30">The Journey</span>
-            <h3 className="text-4xl sm:text-5xl font-extrabold mb-6">Our Healing Process</h3>
+          <div className="text-center mb-24 max-w-3xl mx-auto">
+            <span className="inline-block px-4 py-2 bg-white/10 text-white rounded-full text-sm font-bold uppercase tracking-widest backdrop-blur-md mb-6 border border-white/20">The Process</span>
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6">Four Steps to Wellness</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 text-center relative">
-            <div className="hidden lg:block absolute top-10 left-12 right-12 h-0.5 bg-white/20 -z-0 rounded-full"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 relative">
+            {/* Connecting Line */}
+            <div className="hidden lg:block absolute top-10 left-[12%] right-[12%] h-[2px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
             
             {[
-              { step: '1', title: 'Consultation', desc: 'Detailed Nadi Pariksha and personalized diagnosis.' },
-              { step: '2', title: 'Treatment Plan', desc: 'Custom therapy & dietary chart creation.' },
-              { step: '3', title: 'Panchakarma', desc: 'Authentic detoxification therapies at our clinic.' },
-              { step: '4', title: 'Rejuvenation', desc: 'Follow-up care ensuring lasting, holistic wellness.' },
+              { step: '01', title: 'Consultation', desc: 'In-depth Nadi Pariksha and personalized Dosha analysis.', icon: Activity },
+              { step: '02', title: 'Treatment Plan', desc: 'Customized herbal formulations and dietary protocols.', icon: Leaf },
+              { step: '03', title: 'Therapies', desc: 'Authentic Panchakarma and external healing treatments.', icon: Droplets },
+              { step: '04', title: 'Rejuvenation', desc: 'Rasayana therapies for lasting immunity and vitality.', icon: Sparkles },
             ].map((item, i) => (
-              <div key={i} className="relative z-10 flex flex-col items-center group">
-                <div className="w-20 h-20 bg-surface-base text-surface-muted rounded-full flex items-center justify-center text-3xl font-bold border-4 border-surface-strong shadow-lg mb-6 group-hover:bg-surface-strong group-hover:text-white group-hover:scale-110 transition-all duration-300 relative">
-                  {item.step}
-                  <div className="absolute inset-0 bg-surface-strong rounded-full animate-ping opacity-20 hidden group-hover:block"></div>
+              <div key={i} className="relative z-10 flex flex-col items-center text-center group">
+                <div className="w-20 h-20 bg-surface-muted text-white rounded-full flex items-center justify-center border-2 border-white/30 shadow-xl mb-8 group-hover:bg-white group-hover:text-surface-muted group-hover:scale-110 transition-all duration-500 relative">
+                  <item.icon className="w-8 h-8" />
+                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-surface-strong text-white text-xs font-bold rounded-full flex items-center justify-center shadow-lg transform group-hover:rotate-12 transition-transform">
+                    {item.step}
+                  </div>
                 </div>
-                <h4 className="text-xl font-bold mb-3">{item.title}</h4>
-                <p className="text-text-secondary/80 max-w-xs">{item.desc}</p>
+                <h3 className="text-2xl font-bold mb-4">{item.title}</h3>
+                <p className="text-white/70 font-light leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-surface-strong text-white relative overflow-hidden">
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <h2 className="text-3xl md:text-5xl font-bold mb-6">Ready to Start Your Wellness Journey?</h2>
-          <p className="text-lg text-white/90 mb-10">Book a consultation with our expert Vaidyas and take the first step towards a healthier, balanced life.</p>
-          <Link to="/patient/book" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-surface-base text-surface-strong font-bold text-lg rounded-full shadow-xl hover:bg-surface-base/90 hover:scale-105 transition-all">
-            Book Appointment <ArrowRight className="w-5 h-5" />
+      {/* Modern CTA Section */}
+      <section className="relative py-24 lg:py-32 overflow-hidden bg-white">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-surface-strong/20 to-transparent rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-gradient-to-tr from-surface-muted/20 to-transparent rounded-full blur-[100px] translate-y-1/2 -translate-x-1/3 pointer-events-none"></div>
+
+        <div className="max-w-5xl mx-auto px-4 relative z-10 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-surface-strong/10 text-surface-strong rounded-full mb-8">
+            <Clock className="w-10 h-10" />
+          </div>
+          <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 text-text-primary tracking-tight">
+            Your Time for <span className="text-surface-strong">Healing</span> is Now.
+          </h2>
+          <p className="text-xl md:text-2xl text-text-tertiary mb-12 font-light max-w-3xl mx-auto">
+            Take the first step towards a balanced, disease-free life. Book an expert consultation with our experienced Vaidyas today.
+          </p>
+          <Link to="/patient/book" className="inline-flex items-center justify-center gap-3 px-10 py-5 bg-surface-strong text-white font-bold text-xl rounded-full shadow-[0_10px_40px_rgba(224,122,95,0.4)] hover:shadow-[0_15px_50px_rgba(224,122,95,0.6)] hover:-translate-y-2 transition-all duration-300">
+            Schedule Appointment <ArrowRight className="w-6 h-6" />
           </Link>
         </div>
-        
-        {/* Background shapes */}
-        <div className="absolute top-1/2 left-10 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2"></div>
-        <div className="absolute top-1/2 right-10 w-48 h-48 bg-white/10 rounded-full blur-3xl -translate-y-1/2"></div>
       </section>
 
     </div>

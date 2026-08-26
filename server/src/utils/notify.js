@@ -110,14 +110,18 @@ exports.notifyPatient = async (appointment, type) => {
         return;
     }
     
+    // Extract mobile and email with fallback to populated patient object
+    const mobileNumber = appointment.mobile || (appointment.patient && appointment.patient.mobile);
+    const emailAddress = appointment.email || (appointment.patient && appointment.patient.email);
+
     // Send SMS
-    if (appointment.mobile) {
-      await exports.sendSMS(appointment.mobile, message);
+    if (mobileNumber) {
+      await exports.sendSMS(mobileNumber, message);
     }
     
     // Send Email
-    if (appointment.email) {
-      await exports.sendEmail(appointment.email, subject, message);
+    if (emailAddress) {
+      await exports.sendEmail(emailAddress, subject, message);
     }
   } catch (error) {
     console.error('❌ Notification failed (but execution continues):', error.message);
