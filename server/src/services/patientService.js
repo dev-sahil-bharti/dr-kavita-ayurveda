@@ -117,12 +117,14 @@ exports.forgotPassword = async (contact) => {
   // Generate 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Log OTP to console for easy testing
-  console.log(`\n========================================`);
-  console.log(`🔑 FORGOT PASSWORD OTP GENERATED`);
-  console.log(`To: ${contact} (Patient)`);
-  console.log(`OTP Code: ${otp}`);
-  console.log(`========================================\n`);
+  // Log OTP to console for easy testing in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`\n========================================`);
+    console.log(`🔑 FORGOT PASSWORD OTP GENERATED`);
+    console.log(`To: ${contact} (Patient)`);
+    console.log(`OTP Code: ${otp}`);
+    console.log(`========================================\n`);
+  }
 
   // Store it with expiry (10 minutes)
   const expiresAt = Date.now() + 10 * 60 * 1000;

@@ -23,10 +23,14 @@ const sendErrorProd = (err, res) => {
     try { require('fs').writeFileSync('error_log.txt', err.stack); } catch(e){}
     res.status(500).json({
       status: 'error',
-      message: err.message || 'Something went very wrong!',
-      stack: err.stack
+      message: 'Something went very wrong!'
     });
   }
+};
+
+const handleCastErrorDB = err => {
+  const message = `Invalid ${err.path}: ${err.value}.`;
+  return new AppError(message, 400);
 };
 
 module.exports = (err, req, res, next) => {
@@ -36,10 +40,10 @@ module.exports = (err, req, res, next) => {
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, res);
   } else {
-    let error = { ...err, message: err.message };
+    let error = { ...err, message: err.message, name: err.name };
 
     // Handle specific DB errors here if needed
-    // if (error.name === 'CastError') error = handleCastErrorDB(error);
+    if (error.name === 'CastError') error = handleCastErrorDB(error);
     // if (error.code === 11000) error = handleDuplicateFieldsDB(error);
 
     sendErrorProd(error, res);

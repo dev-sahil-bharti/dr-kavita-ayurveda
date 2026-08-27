@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { registerAdmin, loginAdmin, updateAdminProfile, changePassword, forgotPassword, resetPassword } = require('../controllers/adminAuthController');
 const auth = require('../middleware/auth');
+const authorizeRoles = require('../middleware/roleCheck');
 
 const validate = require('../middleware/validate');
 const { registerAdminSchema, loginAdminSchema } = require('../schemas/adminSchema');
@@ -13,15 +14,15 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);
 
 // Protected routes
-router.put('/updateAdminProfile/:id', auth, updateAdminProfile);
-router.put('/changepassword/:id', auth, changePassword);
+router.put('/updateAdminProfile/:id', auth, authorizeRoles('admin'), updateAdminProfile);
+router.put('/changepassword/:id', auth, authorizeRoles('admin'), changePassword);
 
 // Get current logged-in admin's profile
-router.get('/profile', auth, require('../controllers/adminAuthController').getMyProfile);
+router.get('/profile', auth, authorizeRoles('admin'), require('../controllers/adminAuthController').getMyProfile);
 
 // Dashboard Stats
 const { getDashboardStats } = require('../controllers/dashboardController');
-router.get('/dashboard-stats', auth, getDashboardStats);
+router.get('/dashboard-stats', auth, authorizeRoles('admin'), getDashboardStats);
 
 // ==========================================
 // Admin Appointment Management Routes
@@ -35,12 +36,12 @@ const {
 } = require('../controllers/appointmentController');
 
 // Calendar (Make sure this comes before /:id routes to prevent 'calendar' being interpreted as an id)
-router.get('/appointments/calendar', auth, getCalendarAppointments);
+router.get('/appointments/calendar', auth, authorizeRoles('admin'), getCalendarAppointments);
 
 // Appointment Actions
-router.patch('/appointments/:id/accept', auth, acceptAppointment);
-router.patch('/appointments/:id/checkin', auth, checkInAppointment);
-router.patch('/appointments/:id/complete', auth, completeAppointment);
-router.patch('/appointments/:id/mark-cash-paid', auth, markCashPaid);
+router.patch('/appointments/:id/accept', auth, authorizeRoles('admin'), acceptAppointment);
+router.patch('/appointments/:id/checkin', auth, authorizeRoles('admin'), checkInAppointment);
+router.patch('/appointments/:id/complete', auth, authorizeRoles('admin'), completeAppointment);
+router.patch('/appointments/:id/mark-cash-paid', auth, authorizeRoles('admin'), markCashPaid);
 
 module.exports = router;

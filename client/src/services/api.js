@@ -29,9 +29,14 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       // Clear token and redirect to login if unauthorized
+      const role = localStorage.getItem('role');
       localStorage.removeItem('token');
       localStorage.removeItem('role');
-      window.location.href = '/login';
+      if (role === 'admin') {
+        window.location.href = '/admin/login';
+      } else {
+        window.location.href = '/patient/login';
+      }
     }
     return Promise.reject(error);
   }
