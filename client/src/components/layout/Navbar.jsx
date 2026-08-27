@@ -22,13 +22,27 @@ const PublicNavbar = () => {
   }, [location]);
 
   const navLinks = [
-    { name: 'HOME', path: '/home' },
-    { name: 'PANCHAKARMA', path: '/panchakarma' },
-    { name: 'THERAPIES', path: '/therapies', hasDropdown: true },
-    { name: 'GALLERY', path: '/gallery' },
-    { name: 'ABOUT US', path: '/about' },
-    { name: 'CONTACT US', path: '/contact' },
+    { name: 'HOME', path: '/home#home' },
+    { name: 'PANCHAKARMA', path: '/home#panchakarma' },
+    { name: 'THERAPIES', path: '/home#therapies', hasDropdown: true },
+    { name: 'GALLERY', path: '/home#gallery' },
+    { name: 'ABOUT US', path: '/home#about' },
+    { name: 'CONTACT US', path: '/home#contact' },
   ];
+
+  const handleNavClick = (e, path) => {
+    if (path.startsWith('/home#')) {
+      const hash = path.split('#')[1];
+      if (location.pathname === '/home' || location.pathname === '/') {
+        e.preventDefault();
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+        setIsMobileMenuOpen(false);
+      }
+    }
+  };
 
   return (
     <header className="w-full font-sans shadow-md">
@@ -96,6 +110,7 @@ const PublicNavbar = () => {
                 <Link
                   key={item.name}
                   to={item.path}
+                  onClick={(e) => handleNavClick(e, item.path)}
                   className="relative group flex items-center hover:text-[#b48608] transition-colors py-2"
                 >
                   {item.name}
@@ -132,6 +147,7 @@ const PublicNavbar = () => {
             <Link
               key={item.name}
               to={item.path}
+              onClick={(e) => handleNavClick(e, item.path)}
               className="px-4 py-3 rounded-lg hover:bg-white/10 hover:text-[#b48608] transition-colors font-bold text-sm tracking-wider flex justify-between items-center"
             >
               {item.name}

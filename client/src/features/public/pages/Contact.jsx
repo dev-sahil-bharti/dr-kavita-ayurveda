@@ -49,7 +49,7 @@ const Contact = () => {
         </div>
 
         <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
-          <h1 className="text-5xl sm:text-6xl font-extrabold mb-6 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight">
             Get In <span className="text-transparent bg-clip-text bg-gradient-to-r from-surface-strong to-orange-300">Touch</span>
           </h1>
           <p className="text-xl text-white/80 font-light leading-relaxed max-w-2xl mx-auto">

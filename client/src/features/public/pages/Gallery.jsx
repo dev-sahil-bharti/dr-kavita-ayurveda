@@ -27,7 +27,7 @@ const Gallery = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-surface-muted/10 text-surface-muted rounded-full mb-6">
             <Camera className="w-8 h-8" />
           </div>
-          <h1 className="text-5xl sm:text-6xl font-extrabold mb-6 tracking-tight text-text-primary">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight text-text-primary">
             Our <span className="text-surface-strong">Sanctuary</span>
           </h1>
           <p className="text-xl text-text-tertiary font-light leading-relaxed max-w-2xl mx-auto">

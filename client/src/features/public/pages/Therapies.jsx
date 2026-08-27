@@ -60,7 +60,7 @@ const Therapies = () => {
           <span className="inline-block px-4 py-2 bg-white/10 rounded-full text-sm font-bold uppercase tracking-widest mb-6 border border-white/20 backdrop-blur-md">
             Holistic Treatments
           </span>
-          <h1 className="text-5xl sm:text-6xl font-extrabold mb-6 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold mb-6 tracking-tight">
             Ayurvedic Therapies
           </h1>
           <p className="text-xl text-white/80 font-light leading-relaxed max-w-2xl mx-auto">

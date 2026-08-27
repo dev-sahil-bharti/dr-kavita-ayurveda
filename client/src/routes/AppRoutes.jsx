@@ -30,6 +30,7 @@ import Panchakarma from '../features/public/pages/Panchakarma';
 import Therapies from '../features/public/pages/Therapies';
 import PrivacyPolicy from '../features/public/pages/PrivacyPolicy';
 import TermsOfService from '../features/public/pages/TermsOfService';
+import OnePageScroll from '../features/public/pages/OnePageScroll';
 
 const AdminLayout = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -81,18 +82,21 @@ const PublicLayout = ({ children }) => {
       <main className="flex-1">
         {children}
       </main>
-      <Footer />
+      <section id="footer">
+        <Footer />
+      </section>
     </div>
   );
 };
 
 const AppRoutes = () => {
+
   return (
     <Routes>
       {/* PUBLIC ROUTES */}
       {/* PUBLIC ROUTES */}
       <Route path="/" element={<Navigate to="/home" replace />} />
-      <Route path="/home" element={<PublicLayout><Home /></PublicLayout>} />
+      <Route path="/home" element={<PublicLayout><OnePageScroll /></PublicLayout>} />
       <Route path="/panchakarma" element={<PublicLayout><Panchakarma /></PublicLayout>} />
       <Route path="/therapies" element={<PublicLayout><Therapies /></PublicLayout>} />
       <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />

@@ -20,7 +20,7 @@ const About = () => {
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-surface-strong/10 text-surface-strong rounded-full text-sm font-bold uppercase tracking-widest mb-6 border border-surface-strong/20">
             <Sparkles className="w-4 h-4" /> Our Story
           </span>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-extrabold text-text-primary mb-6 tracking-tight">
+          <h1 className="text-4xl sm:text-5xl lg:text-7xl font-extrabold text-text-primary mb-6 tracking-tight">
             Rooted in <span className="text-transparent bg-clip-text bg-gradient-to-r from-surface-strong to-orange-400">Tradition</span>, <br className="hidden sm:block" />
             Designed for Today.
           </h1>

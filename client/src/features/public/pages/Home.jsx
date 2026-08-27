@@ -53,7 +53,7 @@ const Home = () => {
             <span className="opacity-90">Welcome to Dr. Kavita Ayurveda</span>
           </div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight mb-6 max-w-4xl leading-[1.1] text-white animate-fade-in-up" style={{ animationDelay: '100ms' }}>
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl xl:text-8xl font-extrabold tracking-tight mb-6 max-w-4xl leading-[1.1] text-white animate-fade-in-up" style={{ animationDelay: '100ms' }}>
             Awaken Your <br className="hidden sm:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-surface-strong to-orange-300">Natural Harmony</span>
           </h1>
@@ -242,7 +242,7 @@ const Home = () => {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-surface-strong/10 text-surface-strong rounded-full mb-8">
             <Clock className="w-10 h-10" />
           </div>
-          <h2 className="text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 text-text-primary tracking-tight">
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold mb-8 text-text-primary tracking-tight">
             Your Time for <span className="text-surface-strong">Healing</span> is Now.
           </h2>
           <p className="text-xl md:text-2xl text-text-tertiary mb-12 font-light max-w-3xl mx-auto">

@@ -165,7 +165,7 @@ const Register = () => {
                           className="block w-full px-4 py-3 sm:py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white"
                         />
                         <button
-                          type="button"
+                          type="button" 
                           onClick={handleVerifyOtp}
                           disabled={otpLoading || !otpCode}
                           className="whitespace-nowrap px-4 py-3 sm:py-3.5 border border-transparent rounded-xl shadow-sm text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 disabled:opacity-70 disabled:cursor-not-allowed"
