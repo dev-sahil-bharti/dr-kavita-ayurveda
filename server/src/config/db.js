@@ -1,22 +1,20 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const dns = require("node:dns");
+
+// Use reliable DNS resolvers for MongoDB Atlas SRV lookup
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  // Ignore in environments where setting DNS servers is restricted
+}
 
 const connectDB = async () => {
-  const mongoURI = process.env.MONGODB_URI || process.env.MONGO_URI;
-
-  if (!mongoURI) {
-    console.error('CRITICAL WARNING: MONGODB_URI is not defined in environment variables.');
-    return;
-  }
-
   try {
-    const conn = await mongoose.connect(mongoURI, {
-      serverSelectionTimeoutMS: 10000,
-    });
-    console.log(`MongoDB connected successfully: ${conn.connection.host}`);
+    const conn = await mongoose.connect(process.env.MONGODB_URI);
+    console.log(`MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`MongoDB connection error: ${error.message}`);
-    // In production environments, log error and retry instead of instant hard crash
-    setTimeout(connectDB, 5000);
+    console.error(`MongoDB Connection Error: ${error.message}`);
+    process.exit(1);
   }
 };
 
