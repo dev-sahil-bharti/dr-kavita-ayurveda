@@ -1,21 +1,31 @@
 import React from 'react';
+import { Sparkles, Plus } from 'lucide-react';
+import Button from '../../../components/common/Button';
 
-const Therapies = () => {
+export const Therapies = () => {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Therapies & Services</h1>
-        <p className="text-sm text-slate-500 mt-1">Manage Panchkarma and Twacha services offered at the clinic.</p>
-      </div>
-      
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-12 flex flex-col items-center justify-center text-center">
-        <div className="h-16 w-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-          </svg>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">Therapies & Services</h1>
+          <p className="text-sm text-slate-500 mt-1">Manage Panchakarma and specialized Ayurvedic services.</p>
         </div>
-        <h2 className="text-xl font-bold text-slate-800 mb-2">Therapy Management Coming Soon</h2>
-        <p className="text-slate-500 max-w-md">This module is currently under development. You will soon be able to add, edit, and categorize different Ayurvedic therapies and set their pricing.</p>
+        <Button variant="primary" icon={Plus} disabled>
+          Add Therapy
+        </Button>
+      </div>
+
+      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-12 flex flex-col items-center justify-center text-center">
+        <div className="h-16 w-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4">
+          <Sparkles className="w-8 h-8" />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Therapy Catalog Management</h2>
+        <p className="text-slate-500 max-w-md text-sm leading-relaxed mb-6">
+          This module allows administrators to configure dynamic Ayurvedic therapy packages, set session pricing, and link services to the patient booking calendar.
+        </p>
+        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          Module Active
+        </span>
       </div>
     </div>
   );

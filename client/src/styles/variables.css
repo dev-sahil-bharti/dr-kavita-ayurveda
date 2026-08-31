@@ -1,0 +1,57 @@
+:root {
+  /* Brand Palette */
+  --brand-primary: #0f3c35;
+  --brand-primary-hover: #0a2924;
+  --brand-primary-light: #e8f3f0;
+  
+  --brand-accent: #b48608;
+  --brand-accent-hover: #966f06;
+  --brand-accent-light: #fdf6e7;
+  
+  --brand-terracotta: #e07a5f;
+  --brand-terracotta-hover: #cc6449;
+
+  /* Surfaces & Backgrounds */
+  --surface-base: #f9f6f0;
+  --surface-white: #ffffff;
+  --surface-card: #ffffff;
+  --surface-muted: #0f3c35;
+  --surface-strong: #b48608;
+
+  /* Typography & Text */
+  --text-primary: #1a2421;
+  --text-secondary: #4a5d54;
+  --text-muted: #788c82;
+  --text-inverse: #8ca095;
+  --text-light: #ffffff;
+
+  /* Semantic Feedback Colors */
+  --color-success: #059669;
+  --color-success-bg: #ecfdf5;
+  --color-success-border: #a7f3d0;
+
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-warning-border: #fde68a;
+
+  --color-danger: #e11d48;
+  --color-danger-bg: #fff1f2;
+  --color-danger-border: #fecdd3;
+
+  --color-info: #2563eb;
+  --color-info-bg: #eff6ff;
+  --color-info-border: #bfdbfe;
+
+  /* Radii */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}

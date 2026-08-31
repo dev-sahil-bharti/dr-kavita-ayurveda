@@ -1,137 +1,260 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './ProtectedRoute';
+import LoadingState from '../components/feedback/LoadingState';
 
-// Admin Components & Pages
-import Sidebar from '../features/admin/components/Sidebar';
-import Navbar from '../features/admin/components/Navbar';
-import Dashboard from '../features/admin/pages/Dashboard';
-import AdminPatients from '../features/admin/pages/Patients';
-import AdminAppointments from '../features/admin/pages/Appointments';
-import AdminTherapies from '../features/admin/pages/Therapies';
-import AdminLogin from '../features/auth/pages/AdminLogin';
-import AdminProfile from '../features/admin/pages/Profile';
-import AdminInquiries from '../features/admin/pages/Inquery';
-import AdminSettings from '../features/admin/pages/Setting';
+// Layouts
+import AdminLayout from '../layouts/AdminLayout';
+import PatientLayout from '../layouts/PatientLayout';
+import PublicLayout from '../layouts/PublicLayout';
 
-import PatientLogin from '../features/auth/pages/PatientLogin';
-import PatientRegister from '../features/auth/pages/PatientRegister';
+// Public Pages (Lazy Loaded)
+const About = lazy(() => import('../features/public/pages/About'));
+const Contact = lazy(() => import('../features/public/pages/Contact'));
+const Gallery = lazy(() => import('../features/public/pages/Gallery'));
+const Panchakarma = lazy(() => import('../features/public/pages/Panchakarma'));
+const Therapies = lazy(() => import('../features/public/pages/Therapies'));
+const PrivacyPolicy = lazy(() => import('../features/public/pages/PrivacyPolicy'));
+const TermsOfService = lazy(() => import('../features/public/pages/TermsOfService'));
+const OnePageScroll = lazy(() => import('../features/public/pages/OnePageScroll'));
 
-import BookAppointment from '../features/patient/pages/BookAppointment';
-import PatientAppointments from '../features/patient/pages/Appointments';
-import PatientProfile from '../features/patient/pages/Profile';
+// Auth Pages (Lazy Loaded)
+const AdminLogin = lazy(() => import('../features/auth/pages/AdminLogin'));
+const PatientLogin = lazy(() => import('../features/auth/pages/PatientLogin'));
+const PatientRegister = lazy(() => import('../features/auth/pages/PatientRegister'));
 
-// Public Pages
-import Home from '../features/public/pages/Home';
-import About from '../features/public/pages/About';
-import Contact from '../features/public/pages/Contact';
-import Gallery from '../features/public/pages/Gallery';
-import Panchakarma from '../features/public/pages/Panchakarma';
-import Therapies from '../features/public/pages/Therapies';
-import PrivacyPolicy from '../features/public/pages/PrivacyPolicy';
-import TermsOfService from '../features/public/pages/TermsOfService';
-import OnePageScroll from '../features/public/pages/OnePageScroll';
+// Patient Pages (Lazy Loaded)
+const BookAppointment = lazy(() => import('../features/patient/pages/BookAppointment'));
+const PatientAppointments = lazy(() => import('../features/patient/pages/Appointments'));
+const PatientProfile = lazy(() => import('../features/patient/pages/Profile'));
 
-const AdminLayout = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+// Admin Pages (Lazy Loaded)
+const Dashboard = lazy(() => import('../features/admin/pages/Dashboard'));
+const AdminPatients = lazy(() => import('../features/admin/pages/Patients'));
+const AdminAppointments = lazy(() => import('../features/admin/pages/Appointments'));
+const AdminTherapies = lazy(() => import('../features/admin/pages/Therapies'));
+const AdminInquiries = lazy(() => import('../features/admin/pages/Inquery'));
+const AdminSettings = lazy(() => import('../features/admin/pages/Setting'));
+const AdminProfile = lazy(() => import('../features/admin/pages/Profile'));
 
+const PageLoader = () => (
+  <LoadingState fullScreen message="Loading page..." />
+);
+
+export const AppRoutes = () => {
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col min-w-0 md:ml-64 transition-all duration-300">
-        <Navbar toggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-};
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        {/* PUBLIC ROUTES */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route
+          path="/home"
+          element={
+            <PublicLayout>
+              <OnePageScroll />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/panchakarma"
+          element={
+            <PublicLayout>
+              <Panchakarma />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/therapies"
+          element={
+            <PublicLayout>
+              <Therapies />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <PublicLayout>
+              <About />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/gallery"
+          element={
+            <PublicLayout>
+              <Gallery />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/contact"
+          element={
+            <PublicLayout>
+              <Contact />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/privacy-policy"
+          element={
+            <PublicLayout>
+              <PrivacyPolicy />
+            </PublicLayout>
+          }
+        />
+        <Route
+          path="/terms-of-service"
+          element={
+            <PublicLayout>
+              <TermsOfService />
+            </PublicLayout>
+          }
+        />
 
-import PublicNavbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import PatientNavbar from '../features/patient/components/Navbar';
-import PatientSidebar from '../features/patient/components/Sidebar';
+        {/* AUTH ROUTES */}
+        <Route path="/patient/login" element={<PatientLogin />} />
+        <Route path="/patient/register" element={<PatientRegister />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-const PatientLayout = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+        {/* PROTECTED PATIENT ROUTES */}
+        <Route
+          path="/patient"
+          element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <PatientLayout>
+                <Navigate to="/patient/appointments" replace />
+              </PatientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/patient/book"
+          element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <PatientLayout>
+                <BookAppointment />
+              </PatientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/patient/appointments"
+          element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <PatientLayout>
+                <PatientAppointments />
+              </PatientLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/patient/profile"
+          element={
+            <ProtectedRoute allowedRoles={['patient']}>
+              <PatientLayout>
+                <PatientProfile />
+              </PatientLayout>
+            </ProtectedRoute>
+          }
+        />
 
-  return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
-      <PatientSidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      <div className="flex-1 flex flex-col min-w-0 md:ml-64 transition-all duration-300">
-        <PatientNavbar toggleSidebar={toggleSidebar} />
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="max-w-7xl mx-auto">
-            {children}
-          </div>
-        </main>
-      </div>
-    </div>
-  );
-};
+        {/* PROTECTED ADMIN ROUTES */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <Navigate to="/admin/dashboard" replace />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <Dashboard />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/patients"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <AdminPatients />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/appointments"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <AdminAppointments />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/appointment-calendar"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <AdminAppointments />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/therapies"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <AdminTherapies />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/inquiries"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <AdminInquiries />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <AdminSettings />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/profile"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout>
+                <AdminProfile />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
 
-const PublicLayout = ({ children }) => {
-  return (
-    <div className="min-h-screen bg-white font-sans flex flex-col">
-      <PublicNavbar />
-      <main className="flex-1">
-        {children}
-      </main>
-      <section id="footer">
-        <Footer />
-      </section>
-    </div>
-  );
-};
-
-const AppRoutes = () => {
-
-  return (
-    <Routes>
-      {/* PUBLIC ROUTES */}
-      {/* PUBLIC ROUTES */}
-      <Route path="/" element={<Navigate to="/home" replace />} />
-      <Route path="/home" element={<PublicLayout><OnePageScroll /></PublicLayout>} />
-      <Route path="/panchakarma" element={<PublicLayout><Panchakarma /></PublicLayout>} />
-      <Route path="/therapies" element={<PublicLayout><Therapies /></PublicLayout>} />
-      <Route path="/about" element={<PublicLayout><About /></PublicLayout>} />
-      <Route path="/gallery" element={<PublicLayout><Gallery /></PublicLayout>} />
-      <Route path="/contact" element={<PublicLayout><Contact /></PublicLayout>} />
-      <Route path="/privacy-policy" element={<PublicLayout><PrivacyPolicy /></PublicLayout>} />
-      <Route path="/terms-of-service" element={<PublicLayout><TermsOfService /></PublicLayout>} />
-
-      {/* AUTH ROUTES (Patient) */}
-      <Route path="/patient/login" element={<PatientLogin />} />
-      <Route path="/patient/register" element={<PatientRegister />} />
-
-      {/* AUTH ROUTES (Admin) */}
-      <Route path="/admin/login" element={<AdminLogin />} />
-
-      {/* PROTECTED ROUTES (Patient) */}
-      <Route path="/patient" element={<ProtectedRoute allowedRoles={['patient']}><PatientLayout><Navigate to="/patient/appointments" replace /></PatientLayout></ProtectedRoute>} />
-      <Route path="/patient/book" element={<ProtectedRoute allowedRoles={['patient']}><PatientLayout><BookAppointment /></PatientLayout></ProtectedRoute>} />
-      <Route path="/patient/appointments" element={<ProtectedRoute allowedRoles={['patient']}><PatientLayout><PatientAppointments /></PatientLayout></ProtectedRoute>} />
-      <Route path="/patient/profile" element={<ProtectedRoute allowedRoles={['patient']}><PatientLayout><PatientProfile /></PatientLayout></ProtectedRoute>} />
-
-      {/* PROTECTED ROUTES (Admin) */}
-      <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><Navigate to="/admin/dashboard" replace /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><Dashboard /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/patients" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminPatients /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/appointments" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminAppointments /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/appointment-calendar" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminAppointments /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/therapies" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminTherapies /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/inquiries" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminInquiries /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminSettings /></AdminLayout></ProtectedRoute>} />
-      <Route path="/admin/profile" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout><AdminProfile /></AdminLayout></ProtectedRoute>} />
-
-      {/* FALLBACK ROUTE */}
-      <Route path="*" element={<Navigate to="/home" replace />} />
-    </Routes>
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/home" replace />} />
+      </Routes>
+    </Suspense>
   );
 };
 

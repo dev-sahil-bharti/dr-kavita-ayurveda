@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import doctorIllustration from '../../../assets/doctor_illustration.png';
 import ForgotPasswordModal from '../components/ForgotPasswordModal';
+import Button from '../../../components/common/Button';
 
-const Login = () => {
+export const PatientLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,7 +15,7 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loginMethod, setLoginMethod] = useState('mobile');
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -22,12 +23,12 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
-    
+
     try {
       await login(email, password, true);
-      navigate('/patient');
+      navigate('/patient/appointments');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
@@ -35,44 +36,65 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-slate-50 relative overflow-hidden font-sans">
-      {/* Modern Dotted pattern background */}
-      <div 
-        className="absolute inset-0 z-0 opacity-40" 
-        style={{ backgroundImage: 'radial-gradient(#94a3b8 2px, transparent 2px)', backgroundSize: '32px 32px' }}
-      ></div>
-      
-      <div className="flex flex-col lg:flex-row w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden z-10 relative">
-        
+      <div
+        className="absolute inset-0 z-0 opacity-40 pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(#94a3b8 2px, transparent 2px)',
+          backgroundSize: '32px 32px',
+        }}
+      />
+
+      <div className="flex flex-col lg:flex-row w-full max-w-5xl bg-white rounded-3xl shadow-2xl overflow-hidden z-10 relative border border-slate-100">
         {/* Left Side - Form */}
         <div className="w-full lg:w-1/2 p-8 sm:p-12 xl:p-16 flex flex-col justify-center order-2 lg:order-1">
           <div className="w-full max-w-md mx-auto space-y-8">
             <div>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Welcome Back!</h2>
-              <p className="mt-2 text-sm sm:text-base text-slate-500">Sign in to your patient portal to continue.</p>
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+                Welcome Back!
+              </h2>
+              <p className="mt-2 text-sm sm:text-base text-slate-500">
+                Sign in to your patient portal to manage appointments.
+              </p>
             </div>
-            
+
             <form className="space-y-6" onSubmit={handleSubmit}>
               {error && (
-                <div className="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center">
-                  <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                  {error}
+                <div className="bg-rose-50 border border-rose-200 text-rose-600 px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2">
+                  <ShieldAlert className="w-5 h-5 shrink-0" />
+                  <p>{error}</p>
                 </div>
               )}
-              
+
               <div className="space-y-5">
-                {/* Tabs */}
-                <div className="flex p-1 bg-slate-100 rounded-lg">
+                {/* Method Switch Tabs */}
+                <div className="flex p-1 bg-slate-100 rounded-xl">
                   <button
                     type="button"
-                    onClick={() => { setLoginMethod('mobile'); setEmail(''); setError(''); }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${loginMethod === 'mobile' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-500 hover:text-slate-700'}`}
+                    onClick={() => {
+                      setLoginMethod('mobile');
+                      setEmail('');
+                      setError('');
+                    }}
+                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                      loginMethod === 'mobile'
+                        ? 'bg-white shadow-sm text-emerald-700'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
                   >
                     Mobile Number
                   </button>
                   <button
                     type="button"
-                    onClick={() => { setLoginMethod('email'); setEmail(''); setError(''); }}
-                    className={`flex-1 py-2 text-sm font-semibold rounded-md transition-all ${loginMethod === 'email' ? 'bg-white shadow-sm text-teal-600' : 'text-slate-500 hover:text-slate-700'}`}
+                    onClick={() => {
+                      setLoginMethod('email');
+                      setEmail('');
+                      setError('');
+                    }}
+                    className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
+                      loginMethod === 'email'
+                        ? 'bg-white shadow-sm text-emerald-700'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
                   >
                     Email Address
                   </button>
@@ -82,7 +104,7 @@ const Login = () => {
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                     {loginMethod === 'email' ? 'Email Address' : 'Mobile Number'}
                   </label>
-                  
+
                   {loginMethod === 'email' ? (
                     <input
                       type="email"
@@ -90,7 +112,7 @@ const Login = () => {
                       placeholder="john@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="block w-full px-4 py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white"
+                      className="block w-full px-4 py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none bg-slate-50 focus:bg-white"
                     />
                   ) : (
                     <div className="relative">
@@ -98,20 +120,24 @@ const Login = () => {
                         +91
                       </span>
                       <input
-                        type="text"
+                        type="tel"
                         required
                         maxLength={10}
-                        placeholder="0000000000"
+                        placeholder="9876543210"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                        className="block w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white"
+                        onChange={(e) =>
+                          setEmail(e.target.value.replace(/\D/g, '').slice(0, 10))
+                        }
+                        className="block w-full pl-12 pr-4 py-3.5 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none bg-slate-50 focus:bg-white"
                       />
                     </div>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Password
+                  </label>
                   <div className="relative">
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -119,12 +145,12 @@ const Login = () => {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="block w-full px-4 py-3.5 pr-12 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none bg-slate-50 focus:bg-white"
+                      className="block w-full px-4 py-3.5 pr-12 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none bg-slate-50 focus:bg-white"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-teal-600 focus:outline-none transition-colors"
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-emerald-600 focus:outline-none transition-colors"
                     >
                       {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                     </button>
@@ -133,78 +159,74 @@ const Login = () => {
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <div className="flex items-center">
-                  <input 
-                    id="remember-me" 
-                    type="checkbox" 
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4.5 w-4.5 text-teal-600 focus:ring-teal-500 border-slate-300 rounded cursor-pointer accent-teal-600 transition-colors" 
+                    className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-slate-300 rounded"
                   />
-                  <label htmlFor="remember-me" className="ml-2.5 block text-sm text-slate-600 cursor-pointer font-medium hover:text-slate-900 transition-colors">
+                  <span className="ml-2 text-sm text-slate-600 font-medium">
                     Remember Me
-                  </label>
-                </div>
-                <div className="text-sm">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(true)}
-                    className="font-semibold text-teal-600 hover:text-teal-500 transition-colors"
-                  >
-                    Forgot Password?
-                  </button>
-                </div>
-              </div>
-
-              <div className="pt-2">
+                  </span>
+                </label>
                 <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md shadow-teal-500/20 text-base font-semibold text-white bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-400 hover:to-teal-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-all transform active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
+                  type="button"
+                  onClick={() => setIsModalOpen(true)}
+                  className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 transition-colors"
                 >
-                  {isLoading ? 'Logging in...' : 'Sign In'}
+                  Forgot Password?
                 </button>
               </div>
-              
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                isLoading={isLoading}
+                className="w-full"
+              >
+                Sign In
+              </Button>
+
               <div className="mt-8 text-center text-sm font-medium text-slate-600">
                 Not Registered Yet?{' '}
-                <Link to="/patient/register" className="text-teal-600 font-bold hover:text-teal-500 transition-colors">
+                <Link
+                  to="/patient/register"
+                  className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors"
+                >
                   Create an account
                 </Link>
               </div>
             </form>
           </div>
         </div>
-        
-        {/* Right Side - Modern Responsive Illustration */}
-        <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-teal-400 via-teal-500 to-emerald-600 p-8 sm:p-12 flex-col items-center justify-center relative overflow-hidden order-1 lg:order-2 lg:min-h-full">
-           <div className="text-center mb-8 relative z-10 lg:hidden">
-              <h2 className="text-3xl font-bold text-white mb-2">Patient Portal</h2>
-              <p className="text-teal-50">Manage your appointments easily</p>
-           </div>
-           
-           <img 
-              src={doctorIllustration} 
-              alt="Doctor Illustration" 
-              className="relative z-10 w-48 sm:w-64 lg:w-full lg:max-w-md object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105" 
-           />
-           
-           {/* Modern Decorative elements */}
-           <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white opacity-20 rounded-full blur-3xl mix-blend-overlay"></div>
-           <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-80 h-80 bg-teal-300 opacity-30 rounded-full blur-3xl mix-blend-multiply"></div>
-           
-           {/* Glassmorphism card overlay element (optional flair) */}
-           <div className="absolute hidden lg:block bottom-12 right-12 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-xl z-20">
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-full bg-emerald-400 flex items-center justify-center text-white font-bold shadow-lg">✓</div>
-                 <div>
-                    <p className="text-white font-semibold text-sm">Verified Doctor</p>
-                    <p className="text-teal-100 text-xs">Expert Ayurveda Care</p>
-                 </div>
+
+        {/* Right Side - Brand Illustration */}
+        <div className="hidden lg:flex w-full lg:w-1/2 bg-gradient-to-br from-emerald-700 via-teal-700 to-emerald-900 p-8 sm:p-12 flex-col items-center justify-center relative overflow-hidden order-1 lg:order-2">
+          <img
+            src={doctorIllustration}
+            alt="Doctor Illustration"
+            className="relative z-10 w-full max-w-md object-contain drop-shadow-2xl transition-transform duration-700 hover:scale-105"
+          />
+
+          <div className="absolute top-0 right-0 -mt-16 -mr-16 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 -mb-16 -ml-16 w-80 h-80 bg-teal-400/20 rounded-full blur-3xl"></div>
+
+          <div className="absolute bottom-10 right-10 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-xl z-20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-400 flex items-center justify-center text-white font-bold shadow-lg">
+                ✓
               </div>
-           </div>
+              <div>
+                <p className="text-white font-semibold text-sm">Verified Doctors</p>
+                <p className="text-emerald-100 text-xs">Authentic Ayurvedic Care</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+
       <ForgotPasswordModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -214,4 +236,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default PatientLogin;

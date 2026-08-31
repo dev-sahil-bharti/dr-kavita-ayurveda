@@ -1,5 +1,5 @@
 import React from 'react';
-import { Leaf, Award, Users, HeartPulse, Clock, Sparkles } from 'lucide-react';
+import { Leaf, Award, Users, HeartPulse, Sparkles } from 'lucide-react';
 
 const About = () => {
   return (

@@ -1,29 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import PatientTable from '../components/PatientTable';
 import PatientModal from '../components/PatientModal';
 import { Search, Filter, Plus } from 'lucide-react';
-import api from '../../../services/api';
+import { adminService } from '../services/adminService';
 import toast from 'react-hot-toast';
+import Modal from '../../../components/common/Modal';
+import Button from '../../../components/common/Button';
+import LoadingState from '../../../components/feedback/LoadingState';
 
-const Patients = () => {
+export const Patients = () => {
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilter, setShowFilter] = useState(false);
   const [filterOptions, setFilterOptions] = useState({ status: 'all', gender: 'all' });
   const location = useLocation();
-  
+  const navigate = useNavigate();
+
   // Modal state
   const [selectedPatient, setSelectedPatient] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-
   const [actionConfirm, setActionConfirm] = useState({ id: null, newStatus: null });
 
   const fetchPatients = async () => {
     try {
-      const { data } = await api.get('/patient');
-      setPatients(data);
+      setLoading(true);
+      const data = await adminService.getPatients();
+      setPatients(data || []);
     } catch (error) {
       console.error('Failed to fetch patients', error);
       toast.error('Failed to fetch patients');
@@ -61,11 +65,13 @@ const Patients = () => {
   const executeArchiveToggle = async () => {
     const { id, newStatus } = actionConfirm;
     if (!id) return;
-    
+
     try {
-      await api.put(`/patient/updatePatientProfile/${id}`, { status: newStatus });
-      toast.success(`Patient ${newStatus === 'archived' ? 'archived' : 'unarchived'} successfully`);
-      fetchPatients(); // refresh data
+      await adminService.updatePatient(id, { status: newStatus });
+      toast.success(
+        `Patient ${newStatus === 'archived' ? 'archived' : 'unarchived'} successfully`
+      );
+      fetchPatients();
     } catch (error) {
       console.error('Error toggling status', error);
       toast.error('Failed to change patient status');
@@ -75,17 +81,18 @@ const Patients = () => {
   };
 
   const handleSavePatient = async (id, updatedData) => {
-    await api.put(`/patient/updatePatientProfile/${id}`, updatedData);
-    fetchPatients(); // refresh table
+    await adminService.updatePatient(id, updatedData);
+    fetchPatients();
   };
 
-  const filteredPatients = patients.filter(p => {
+  const filteredPatients = patients.filter((p) => {
     // Search Filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      const matchesSearch = (p.name && p.name.toLowerCase().includes(query)) ||
-                            (p.mobile && p.mobile.includes(query)) ||
-                            (p.email && p.email.toLowerCase().includes(query));
+      const matchesSearch =
+        (p.name && p.name.toLowerCase().includes(query)) ||
+        (p.mobile && p.mobile.includes(query)) ||
+        (p.email && p.email.toLowerCase().includes(query));
       if (!matchesSearch) return false;
     }
 
@@ -107,48 +114,60 @@ const Patients = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 tracking-tight">Patients</h1>
-          <p className="text-sm text-slate-500 mt-1">Manage and view all registered patient records.</p>
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+            Patients Directory
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Manage and view all registered patient records.
+          </p>
         </div>
-        <button 
-          onClick={() => window.location.href = '/patient/register'}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-medium transition-colors shadow-sm shadow-emerald-600/20 flex items-center"
+        <Button
+          variant="primary"
+          icon={Plus}
+          onClick={() => navigate('/patient/register')}
         >
-          <Plus className="h-5 w-5 mr-2" /> Add Patient
-        </button>
+          Add Patient
+        </Button>
       </div>
 
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
+      <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between">
         <div className="relative w-full sm:w-96">
-          <Search className="h-5 w-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input 
+          <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, phone or email..." 
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500/50 transition-all"
+            placeholder="Search by name, phone or email..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
           />
         </div>
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowFilter(!showFilter)}
             className="flex items-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-colors text-sm font-medium w-full sm:w-auto justify-center"
           >
-            <Filter className="h-4 w-4 mr-2 text-slate-400" /> 
-            Filters {(filterOptions.status !== 'all' || filterOptions.gender !== 'all') && <span className="ml-2 w-2 h-2 rounded-full bg-emerald-500"></span>}
+            <Filter className="h-4 w-4 mr-2 text-slate-400" />
+            Filters{' '}
+            {(filterOptions.status !== 'all' || filterOptions.gender !== 'all') && (
+              <span className="ml-2 w-2 h-2 rounded-full bg-emerald-500"></span>
+            )}
           </button>
-          
+
           {/* Filter Dropdown */}
           {showFilter && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 z-10 p-4">
+            <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 z-10 p-4">
               <h3 className="font-bold text-slate-800 mb-3 text-sm">Filter Patients</h3>
-              
+
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Status</label>
-                  <select 
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">
+                    Status
+                  </label>
+                  <select
                     value={filterOptions.status}
-                    onChange={(e) => setFilterOptions({...filterOptions, status: e.target.value})}
+                    onChange={(e) =>
+                      setFilterOptions({ ...filterOptions, status: e.target.value })
+                    }
                     className="w-full text-sm border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="all">All Statuses</option>
@@ -156,12 +175,16 @@ const Patients = () => {
                     <option value="archived">Archived</option>
                   </select>
                 </div>
-                
+
                 <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Gender</label>
-                  <select 
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">
+                    Gender
+                  </label>
+                  <select
                     value={filterOptions.gender}
-                    onChange={(e) => setFilterOptions({...filterOptions, gender: e.target.value})}
+                    onChange={(e) =>
+                      setFilterOptions({ ...filterOptions, gender: e.target.value })
+                    }
                     className="w-full text-sm border border-slate-200 rounded-lg p-2 focus:outline-none focus:border-emerald-500"
                   >
                     <option value="all">All Genders</option>
@@ -170,8 +193,8 @@ const Patients = () => {
                     <option value="Other">Other</option>
                   </select>
                 </div>
-                
-                <button 
+
+                <button
                   onClick={() => {
                     setFilterOptions({ status: 'all', gender: 'all' });
                     setShowFilter(false);
@@ -187,12 +210,10 @@ const Patients = () => {
       </div>
 
       {loading ? (
-        <div className="h-64 flex items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-        </div>
+        <LoadingState message="Loading patient directory..." />
       ) : (
-        <PatientTable 
-          patients={filteredPatients} 
+        <PatientTable
+          patients={filteredPatients}
           onView={handleView}
           onEdit={handleEdit}
           onArchiveToggle={handleArchiveToggle}
@@ -200,38 +221,37 @@ const Patients = () => {
       )}
 
       {/* Action Confirmation Modal */}
-      {actionConfirm.id && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in-up">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden flex flex-col p-6 border border-slate-100">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Confirm {actionConfirm.newStatus === 'archived' ? 'Archive' : 'Unarchive'}
-            </h3>
-            <p className="text-slate-500 mb-6">
-              Are you sure you want to {actionConfirm.newStatus === 'archived' ? 'archive' : 'unarchive'} this patient? 
-              {actionConfirm.newStatus === 'archived' && " They will be moved to the archives and marked as inactive."}
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button 
-                onClick={() => setActionConfirm({ id: null, newStatus: null })}
-                className="px-4 py-2 font-bold text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={executeArchiveToggle}
-                className={`px-4 py-2 font-bold text-white rounded-lg transition-colors ${
-                  actionConfirm.newStatus === 'archived' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-emerald-600 hover:bg-emerald-700'
-                }`}
-              >
-                Confirm
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={!!actionConfirm.id}
+        onClose={() => setActionConfirm({ id: null, newStatus: null })}
+        title={`Confirm ${actionConfirm.newStatus === 'archived' ? 'Archive' : 'Unarchive'}`}
+        maxWidth="max-w-sm"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setActionConfirm({ id: null, newStatus: null })}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={actionConfirm.newStatus === 'archived' ? 'danger' : 'primary'}
+              onClick={executeArchiveToggle}
+            >
+              Confirm
+            </Button>
+          </>
+        }
+      >
+        <p className="text-slate-500 text-sm">
+          Are you sure you want to {actionConfirm.newStatus === 'archived' ? 'archive' : 'unarchive'} this patient record?
+          {actionConfirm.newStatus === 'archived' &&
+            ' They will be marked as inactive and moved to archives.'}
+        </p>
+      </Modal>
 
       {/* Patient Modal */}
-      <PatientModal 
+      <PatientModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         patient={selectedPatient}

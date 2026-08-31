@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import axios from 'axios';
-import { UploadCloud, File, Image as ImageIcon, X, Loader2, CheckCircle2 } from 'lucide-react';
+import { UploadCloud, File, Image as ImageIcon, X, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const FileUpload = ({ onUploadSuccess, accept = "image/*,application/pdf", maxSizeMB = 5 }) => {
