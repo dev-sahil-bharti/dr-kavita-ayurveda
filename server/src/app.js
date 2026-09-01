@@ -15,26 +15,47 @@ app.use(
   })
 );
 
-// Configure CORS
-const allowedOrigins = [
+// Collect allowed origins
+const envOrigins = [
   process.env.FRONTEND_URL,
   process.env.CLIENT_URL,
+]
+  .filter(Boolean)
+  .flatMap((url) => url.split(',').map((u) => u.trim().replace(/\/+$/, '')));
+
+const defaultAllowedOrigins = [
+  'https://dr-kavita-ayurveda.onrender.com',
+  'https://dr-kavita-ayurveda-server.onrender.com',
   'http://localhost:5173',
   'http://localhost:3000',
+  'http://localhost:5000',
   'http://127.0.0.1:5173',
-].filter(Boolean);
+];
+
+const allowedOrigins = Array.from(new Set([...envOrigins, ...defaultAllowedOrigins]));
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      // Allow requests with no origin (e.g. mobile apps, curl, Postman, server-to-server)
       if (!origin) return callback(null, true);
-      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+
+      const normalizedOrigin = origin.trim().replace(/\/+$/, '');
+
+      if (
+        allowedOrigins.includes(normalizedOrigin) ||
+        normalizedOrigin.endsWith('.onrender.com') ||
+        process.env.NODE_ENV !== 'production'
+      ) {
         return callback(null, true);
       }
+
+      console.warn(`Blocked origin by CORS: ${origin}`);
       return callback(new AppError('Blocked by CORS policy', 403));
     },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-razorpay-signature'],
   })
 );
 
