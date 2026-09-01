@@ -1,23 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const { bookAppointment, getMyAppointments, getAllAppointments, updateAppointmentStatus, getAppointmentsByPatient } = require('../controllers/appointmentController');
+const {
+  bookAppointment,
+  getMyAppointments,
+  getAllAppointments,
+  updateAppointmentStatus,
+  getAppointmentsByPatient,
+} = require('../controllers/appointmentController');
 const auth = require('../middleware/auth');
+const authorizeRoles = require('../middleware/roleCheck');
 
-
-// Configure Multer storage
+// Configure Multer memory storage
 const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+});
 
 router.use(auth);
+
 // Patient routes
 router.post('/book', upload.single('reports'), bookAppointment);
 router.get('/my-appointments', getMyAppointments);
 
-// Admin routes (should ideally check role in middleware, but leveraging auth for now based on context)
-router.get('/all', getAllAppointments);
-router.get('/patient/:patientId', getAppointmentsByPatient);
-router.put('/:id/status', updateAppointmentStatus);
+// Admin routes
+router.get('/all', authorizeRoles('admin'), getAllAppointments);
+router.get('/patient/:patientId', authorizeRoles('admin'), getAppointmentsByPatient);
+router.put('/:id/status', authorizeRoles('admin'), updateAppointmentStatus);
 
 module.exports = router;

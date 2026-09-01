@@ -31,4 +31,9 @@ patientSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 
+patientSchema.index({ email: 1 });
+patientSchema.index({ status: 1 });
+patientSchema.index({ createdAt: -1 });
+
 module.exports = mongoose.model('Patient', patientSchema);
+

@@ -1,78 +1,86 @@
-# Dr. Kavita Ayurveda 🌿
+# Dr. Kavita Ayurveda — Clinical Management System
 
-A comprehensive, full-stack Clinic Management System built on the MERN stack (MongoDB, Express, React, Node.js). This platform provides a seamless digital experience for patients to book consultations and for clinic administrators to manage appointments, payments, and patient records efficiently.
+A production-grade, full-stack MERN application for holistic Ayurvedic healthcare management, consultation booking, multi-session Panchakarma tracking, automated SMS/Email reminders, and administrative operations.
 
-## 🚀 Features
+---
 
-### For Patients
-* **OTP-based Authentication**: Secure login and registration using mobile numbers via MSG91.
-* **Appointment Booking**: Easy-to-use interface to book Online or In-person consultations.
-* **Payment Integration**: Secure online payments using **Razorpay**.
-* **Instant Notifications**: Automated Email, SMS (via MSG91), and In-App notifications for booking confirmations, rescheduling, and reminders.
-* **Patient Dashboard**: Track upcoming appointments, view past consultation history, and manage profile settings.
+## 🏛️ Architecture Overview
 
-### For Administrators
-* **Admin Dashboard**: A beautiful, modern interface with dark/light mode support.
-* **Patient Management**: View registered patients, filter by status (Active/Archived) and Gender, and access detailed medical history.
-* **Appointment Lifecycle**: Complete control over appointments (Pending, Confirmed, Checked-in, Completed, Cancelled, Rescheduled).
-* **Automated Alerts**: Triggers notifications to patients automatically whenever their appointment status is updated or rescheduled.
-* **Global Settings**: Configure clinic address, working hours, themes, and notification preferences dynamically.
+The repository is structured as an independently deployable monorepo:
 
-## 💻 Tech Stack
+```text
+├── client/           # React 19 + Vite + Tailwind CSS Frontend
+├── server/           # Node.js + Express + MongoDB Backend API
+├── docs/             # Architecture, API & Deployment Documentation
+│   ├── architecture.md
+│   ├── api.md
+│   └── deployment.md
+├── package.json      # Monorepo workspace orchestration
+└── README.md
+```
 
-* **Frontend**: React.js, Tailwind CSS, Lucide React (Icons), Vite
-* **Backend**: Node.js, Express.js
-* **Database**: MongoDB (Mongoose)
-* **Authentication**: JWT (Admin), OTP via MSG91 (Patients)
-* **Payments**: Razorpay Integration
-* **Email & SMS**: Nodemailer, MSG91 DLT APIs
+---
 
-## ⚙️ Installation & Setup
+## 🚀 Quick Start
 
-### Prerequisites
-Make sure you have Node.js and MongoDB installed on your system.
+### 1. Prerequisites
+- Node.js (v18+ or v20+)
+- MongoDB running locally or MongoDB Atlas URI
+- npm or yarn
 
-### 1. Clone the repository
+### 2. Installation
+Install all dependencies across both workspaces from root:
 ```bash
-git clone https://github.com/dev-sahil-bharti/dr-kavita-ayurveda.git
-cd dr-kavita-ayurveda
+npm install --prefix server
+npm install --prefix client
 ```
 
-### 2. Backend Setup
+### 3. Environment Setup
+Configure the environment variables in both `server/` and `client/`:
 ```bash
-cd server
-npm install
+# Server configuration
+cp server/.env.example server/.env
+
+# Client configuration
+cp client/.env.example client/.env
 ```
-Create a `.env` file in the `server` directory and configure the following variables:
-```env
-PORT=5000
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-RAZORPAY_KEY_ID=your_razorpay_key
-RAZORPAY_KEY_SECRET=your_razorpay_secret
-MSG91_AUTH_KEY=your_msg91_key
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-```
-Start the backend server:
+
+### 4. Running in Development Mode
+Start both backend API and frontend Vite dev servers concurrently:
 ```bash
 npm run dev
 ```
+- Client runs at: `http://localhost:5173`
+- Backend runs at: `http://localhost:5000`
+- API Health Check: `http://localhost:5000/api/health`
 
-### 3. Frontend Setup
-```bash
-cd client
-npm install
-```
-Start the frontend development server:
-```bash
-npm run dev
-```
+---
 
-## 🤝 Contribution
-Contributions, issues, and feature requests are welcome!
+## 🛠️ Monorepo Scripts
 
-## 📝 License
-This project is proprietary and confidential.
+| Command | Action |
+| :--- | :--- |
+| `npm run dev` | Runs both server and client development servers |
+| `npm run dev:client` | Starts Vite frontend dev server |
+| `npm run dev:server` | Starts Express backend server with nodemon |
+| `npm run build` | Builds the client production bundle with code splitting |
+| `npm run start` | Starts the production Node.js server |
+| `npm run lint` | Runs oxlint on frontend codebase |
+
+---
+
+## 📚 Technical Documentation
+
+- 📐 **[System Architecture](docs/architecture.md)** — Architectural layers, design tokens, state management.
+- 📡 **[API Specification](docs/api.md)** — Complete catalog of endpoints, payload contracts, and error handling.
+- 🚀 **[Deployment Guide](docs/deployment.md)** — Independent frontend & backend deployment on Vercel, Render, or AWS.
+
+---
+
+## 🔐 Security Features
+
+- **Helmet**: Secures HTTP response headers against clickjacking, XSS, and MIME-sniffing.
+- **Rate Limiting**: Defends against brute-force authentication and OTP flooding attacks.
+- **Persistent OTP Storage**: MongoDB-backed OTPs with 10-minute automatic TTL expiration.
+- **HMAC Payment Verification**: Cryptographic validation of Razorpay order signatures.
+- **Role-Based Protection**: Strict separation of Admin vs Patient privileges.

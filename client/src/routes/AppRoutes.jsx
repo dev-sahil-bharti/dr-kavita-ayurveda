@@ -112,6 +112,11 @@ export const AppRoutes = () => {
           }
         />
 
+        {/* PUBLIC BOOKING ALIASES */}
+        <Route path="/book" element={<Navigate to="/patient/book" replace />} />
+        <Route path="/book-appointment" element={<Navigate to="/patient/book" replace />} />
+        <Route path="/booking" element={<Navigate to="/patient/book" replace />} />
+
         {/* AUTH ROUTES */}
         <Route path="/patient/login" element={<PatientLogin />} />
         <Route path="/patient/register" element={<PatientRegister />} />
@@ -120,6 +125,7 @@ export const AppRoutes = () => {
         {/* PROTECTED PATIENT ROUTES */}
         <Route
           path="/patient"
+
           element={
             <ProtectedRoute allowedRoles={['patient']}>
               <PatientLayout>

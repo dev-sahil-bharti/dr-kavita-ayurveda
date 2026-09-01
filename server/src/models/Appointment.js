@@ -89,5 +89,9 @@ const appointmentSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 appointmentSchema.index({ date: 1, timeSlot: 1, status: 1 });
+appointmentSchema.index({ patient: 1, date: -1 });
+appointmentSchema.index({ status: 1, date: 1 });
+appointmentSchema.index({ razorpayOrderId: 1 });
 
 module.exports = mongoose.model('Appointment', appointmentSchema);
+

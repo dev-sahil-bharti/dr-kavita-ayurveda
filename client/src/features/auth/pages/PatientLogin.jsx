@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Eye, EyeOff, ShieldAlert } from 'lucide-react';
 import doctorIllustration from '../../../assets/doctor_illustration.png';
@@ -18,6 +18,9 @@ export const PatientLogin = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/patient/appointments';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,13 +29,14 @@ export const PatientLogin = () => {
 
     try {
       await login(email, password, true);
-      navigate('/patient/appointments');
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-slate-50 relative overflow-hidden font-sans">

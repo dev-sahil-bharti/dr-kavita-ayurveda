@@ -1,7 +1,7 @@
 const Admin = require('../models/Admin');
+const Otp = require('../models/Otp');
 const generateToken = require('../utils/generateToken');
 const AppError = require('../utils/AppError');
-const otpStore = require('../utils/otpStore');
 const notify = require('../utils/notify');
 
 exports.registerAdmin = async (data) => {
@@ -81,41 +81,38 @@ exports.getAdminProfile = async (id) => {
 };
 
 exports.forgotPassword = async (contact) => {
-  // Find admin by email or mobileNo
   const admin = await Admin.findOne({
-    $or: [{ email: contact }, { mobileNo: contact }]
+    $or: [{ email: contact }, { mobileNo: contact }],
   });
 
   if (!admin) {
     throw new AppError('Admin not found with this email or mobile number', 404);
   }
 
-  // Generate 6-digit OTP
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-  // Log OTP to console for easy testing in development
+  // Store in DB with 10-minute TTL
+  await Otp.deleteMany({ contact, userType: 'admin' });
+  await Otp.create({
+    contact,
+    otp,
+    userId: admin._id,
+    userType: 'admin',
+  });
+
   if (process.env.NODE_ENV === 'development') {
     console.log(`\n========================================`);
-    console.log(`🔑 FORGOT PASSWORD OTP GENERATED`);
-    console.log(`To: ${contact} (Admin)`);
-    console.log(`OTP Code: ${otp}`);
+    console.log(`🔑 FORGOT PASSWORD OTP (Admin): ${contact} -> ${otp}`);
     console.log(`========================================\n`);
   }
 
-  // Store it with expiry (10 minutes)
-  const expiresAt = Date.now() + 10 * 60 * 1000;
-  otpStore.set(contact, { otp, expiresAt, userId: admin._id });
-
-  // Send OTP
   if (contact.includes('@')) {
-    // Send via email
     await notify.sendEmail(
       admin.email,
       'Password Reset OTP - Dr. Kavita Ayurveda',
-      `Your OTP for password reset is: ${otp}. It is valid for 10 minutes.`
+      `Your OTP for Admin password reset is: ${otp}. It is valid for 10 minutes.`
     );
   } else {
-    // Send via SMS
     await notify.sendSMS(
       admin.mobileNo,
       `Your OTP for Admin password reset is ${otp}. Valid for 10 minutes. - Dr. Kavita Ayurveda`
@@ -126,22 +123,24 @@ exports.forgotPassword = async (contact) => {
 };
 
 exports.resetPassword = async (contact, otp, newPassword) => {
-  const storedData = otpStore.get(contact);
+  const otpRecord = await Otp.findOne({ contact, userType: 'admin' }).sort({ createdAt: -1 });
 
-  if (!storedData) {
+  if (!otpRecord) {
     throw new AppError('OTP not requested or expired. Please request a new one.', 400);
   }
 
-  if (Date.now() > storedData.expiresAt) {
-    otpStore.delete(contact);
-    throw new AppError('OTP has expired. Please request a new one.', 400);
+  if (otpRecord.attempts >= 5) {
+    await Otp.deleteMany({ contact, userType: 'admin' });
+    throw new AppError('Too many failed attempts. Please request a new OTP.', 400);
   }
 
-  if (storedData.otp !== otp) {
+  if (otpRecord.otp !== otp) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
     throw new AppError('Invalid OTP', 400);
   }
 
-  const admin = await Admin.findById(storedData.userId);
+  const admin = await Admin.findById(otpRecord.userId);
   if (!admin) {
     throw new AppError('Admin not found', 404);
   }
@@ -149,8 +148,8 @@ exports.resetPassword = async (contact, otp, newPassword) => {
   admin.password = newPassword;
   await admin.save();
 
-  // Clean up OTP
-  otpStore.delete(contact);
+  // Invalidate OTP
+  await Otp.deleteMany({ contact, userType: 'admin' });
 
   return {
     message: 'Password reset successfully',

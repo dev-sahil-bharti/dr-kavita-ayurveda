@@ -9,8 +9,8 @@ export const adminService = {
   },
 
   // Patients
-  getPatients: async () => {
-    const { data } = await apiClient.get(API_ENDPOINTS.ADMIN.PATIENTS_LIST);
+  getPatients: async (params = {}) => {
+    const { data } = await apiClient.get(API_ENDPOINTS.ADMIN.PATIENTS_LIST, { params });
     return data;
   },
 
@@ -23,13 +23,25 @@ export const adminService = {
   },
 
   // Appointments
-  getAllAppointments: async () => {
-    const { data } = await apiClient.get(API_ENDPOINTS.APPOINTMENTS.ALL);
+  getAllAppointments: async (params = {}) => {
+    const { data } = await apiClient.get(API_ENDPOINTS.APPOINTMENTS.ALL, { params });
     return data.data;
+  },
+
+  getCalendarAppointments: async (date) => {
+    const { data } = await apiClient.get(API_ENDPOINTS.ADMIN.CALENDAR_APPOINTMENTS, {
+      params: { date },
+    });
+    return data.data || [];
   },
 
   acceptAppointment: async (id) => {
     const { data } = await apiClient.patch(API_ENDPOINTS.ADMIN.ACCEPT_APPOINTMENT(id));
+    return data;
+  },
+
+  checkInAppointment: async (id) => {
+    const { data } = await apiClient.patch(API_ENDPOINTS.ADMIN.CHECKIN_APPOINTMENT(id));
     return data;
   },
 
@@ -58,8 +70,8 @@ export const adminService = {
   },
 
   // Inquiries
-  getInquiries: async () => {
-    const { data } = await apiClient.get(API_ENDPOINTS.INQUIRIES.LIST);
+  getInquiries: async (params = {}) => {
+    const { data } = await apiClient.get(API_ENDPOINTS.INQUIRIES.LIST, { params });
     return data.data || [];
   },
 
@@ -78,6 +90,11 @@ export const adminService = {
   // Notifications
   getNotifications: async () => {
     const { data } = await apiClient.get(API_ENDPOINTS.NOTIFICATIONS.LIST);
+    return data;
+  },
+
+  markNotificationRead: async (id) => {
+    const { data } = await apiClient.put(API_ENDPOINTS.NOTIFICATIONS.MARK_READ(id));
     return data;
   },
 

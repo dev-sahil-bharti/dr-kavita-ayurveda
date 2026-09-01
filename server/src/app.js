@@ -1,30 +1,84 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
 const path = require('path');
 const AppError = require('./utils/AppError');
 const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
-app.use(express.json());
+// Set security HTTP headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// Configure CORS
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+].filter(Boolean);
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+      return callback(new AppError('Blocked by CORS policy', 403));
+    },
+    credentials: true,
+  })
+);
+
+// Global Rate Limiting on API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many requests from this IP, please try again in 15 minutes',
+  },
+});
+app.use('/api', apiLimiter);
+
+// Body parsers
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Serve uploads statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Routes
+// Health Check API
+app.get('/api/health', (req, res) => {
+  res.status(200).json({
+    success: true,
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+  });
+});
+
+// API Routes
 const routes = require('./routes');
 app.use('/api', routes);
 
-// Handle unhandled API routes
+// Handle unhandled API routes (Express 5 safe)
 app.use('/api', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
-// Serve frontend in production
+// Serve frontend in production SPA fallback
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../../client/dist')));
 
@@ -32,9 +86,12 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.resolve(__dirname, '../../client/dist/index.html'));
   });
 } else {
-  // Basic route
   app.get('/', (req, res) => {
-    res.send('Server is running port :' + process.env.PORT);
+    res.json({
+      success: true,
+      message: 'Dr. Kavita Ayurveda API Server is running',
+      health: '/api/health',
+    });
   });
 }
 

@@ -1,0 +1,30 @@
+{
+  "name": "dr-kavita-ayurveda-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-Stack Ayurveda Clinic Management System",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=server & npm run dev --workspace=client",
+    "dev:client": "npm run dev --workspace=client",
+    "dev:server": "npm run dev --workspace=server",
+    "build:client": "npm run build --workspace=client",
+    "build": "npm run build:client",
+    "start": "npm run start --workspace=server",
+    "lint": "npm run lint --workspace=client"
+  },
+  "keywords": [
+    "ayurveda",
+    "mern",
+    "clinic-management",
+    "healthcare",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "Dr. Kavita Ayurveda",
+  "license": "ISC"
+}

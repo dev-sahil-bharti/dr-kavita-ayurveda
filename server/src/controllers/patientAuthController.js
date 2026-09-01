@@ -1,5 +1,6 @@
 const patientService = require('../services/patientService');
 const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/AppError');
 
 exports.registerPatient = catchAsync(async (req, res) => {
   const patient = await patientService.registerPatient(req.body);
@@ -23,8 +24,16 @@ exports.getMyProfile = catchAsync(async (req, res) => {
 });
 
 exports.getAllPatients = catchAsync(async (req, res) => {
-  const patients = await patientService.getAllPatients();
-  res.json(patients);
+  const result = await patientService.getAllPatients(req.query);
+  if (result.pagination) {
+    res.json({
+      status: 'success',
+      data: result.patients,
+      pagination: result.pagination,
+    });
+  } else {
+    res.json(result);
+  }
 });
 
 exports.updatePatientProfile = catchAsync(async (req, res) => {
@@ -38,17 +47,9 @@ exports.changePassword = catchAsync(async (req, res) => {
   res.json({ message: 'Password updated successfully' });
 });
 
-// Get currently logged-in user's profile (using token)
-exports.getMyProfile = catchAsync(async (req, res) => {
-  // req.user.id comes from the auth middleware decoding the JWT
-  const patient = await patientService.getPatientProfile(req.user.id);
-  res.json(patient);
-});
-
 exports.forgotPassword = catchAsync(async (req, res) => {
   const { contact } = req.body;
   if (!contact) {
-    const AppError = require('../utils/AppError');
     throw new AppError('Email or Mobile number is required', 400);
   }
   const result = await patientService.forgotPassword(contact);
@@ -58,7 +59,6 @@ exports.forgotPassword = catchAsync(async (req, res) => {
 exports.resetPassword = catchAsync(async (req, res) => {
   const { contact, otp, newPassword } = req.body;
   if (!contact || !otp || !newPassword) {
-    const AppError = require('../utils/AppError');
     throw new AppError('Contact, OTP, and New Password are required', 400);
   }
   const result = await patientService.resetPassword(contact, otp, newPassword);

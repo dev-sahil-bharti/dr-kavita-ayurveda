@@ -8,25 +8,26 @@ export const patientService = {
     return data.data || [];
   },
 
+  getAppointmentHistory: async () => {
+    const { data } = await apiClient.get(API_ENDPOINTS.APPOINTMENTS.HISTORY);
+    return data.data || [];
+  },
+
   // Book Appointment
   bookAppointment: async (formData) => {
-    // Check if formData is already a FormData instance or an object
     let payload = formData;
-    let headers = {};
 
     if (!(formData instanceof FormData)) {
       payload = new FormData();
       Object.keys(formData).forEach((key) => {
-        if (formData[key] !== null && formData[key] !== undefined) {
+        if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
           payload.append(key, formData[key]);
         }
       });
-      headers['Content-Type'] = 'multipart/form-data';
-    } else {
-      headers['Content-Type'] = 'multipart/form-data';
     }
 
-    const { data } = await apiClient.post(API_ENDPOINTS.APPOINTMENTS.BOOK, payload, { headers });
+    // Omit explicit Content-Type header so Axios / browser automatically attaches multipart boundary
+    const { data } = await apiClient.post(API_ENDPOINTS.APPOINTMENTS.BOOK, payload);
     return data;
   },
 

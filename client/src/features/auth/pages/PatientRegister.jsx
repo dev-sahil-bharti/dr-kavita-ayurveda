@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Eye, EyeOff, ShieldAlert, Check } from 'lucide-react';
 import { authService } from '../services/authService';
@@ -25,7 +25,10 @@ export const PatientRegister = () => {
   const [otpLoading, setOtpLoading] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/patient/appointments';
   const { registerPatient } = useAuth();
+
 
   const handleSendOtp = async () => {
     if (!formData.mobile) {
@@ -73,13 +76,14 @@ export const PatientRegister = () => {
 
     try {
       await registerPatient(formData);
-      navigate('/patient/appointments');
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed.');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-slate-50 relative overflow-hidden font-sans">

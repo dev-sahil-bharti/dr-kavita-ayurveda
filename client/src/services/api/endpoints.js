@@ -1,10 +1,17 @@
 /**
- * API Endpoints Catalog
+ * Centralized API Endpoints Catalog
  */
 export const API_ENDPOINTS = {
+  // System Health
+  HEALTH: '/health',
+
+  // Upload
+  UPLOAD: '/upload',
+
   // Auth
   AUTH: {
     ADMIN_LOGIN: '/admin/login',
+    ADMIN_REGISTER: '/admin/register',
     ADMIN_PROFILE: '/admin/profile',
     ADMIN_UPDATE_PROFILE: (id) => `/admin/updateAdminProfile/${id}`,
     ADMIN_CHANGE_PASSWORD: (id) => `/admin/changepassword/${id}`,
@@ -27,7 +34,9 @@ export const API_ENDPOINTS = {
   ADMIN: {
     DASHBOARD_STATS: '/admin/dashboard-stats',
     PATIENTS_LIST: '/patient',
+    CALENDAR_APPOINTMENTS: '/admin/appointments/calendar',
     ACCEPT_APPOINTMENT: (id) => `/admin/appointments/${id}/accept`,
+    CHECKIN_APPOINTMENT: (id) => `/admin/appointments/${id}/checkin`,
     COMPLETE_APPOINTMENT: (id) => `/admin/appointments/${id}/complete`,
     MARK_CASH_PAID: (id) => `/admin/appointments/${id}/mark-cash-paid`,
   },
@@ -36,8 +45,10 @@ export const API_ENDPOINTS = {
   APPOINTMENTS: {
     ALL: '/appointments/all',
     MY_APPOINTMENTS: '/appointments/my-appointments',
+    HISTORY: '/patient/appointments/history',
     BOOK: '/appointments/book',
     UPDATE_STATUS: (id) => `/appointments/${id}/status`,
+    BY_PATIENT: (patientId) => `/appointments/patient/${patientId}`,
   },
 
   // Inquiries
@@ -52,6 +63,7 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS: {
     LIST: '/notifications',
     READ_ALL: '/notifications/read-all',
+    MARK_READ: (id) => `/notifications/${id}/read`,
   },
 
   // Settings
