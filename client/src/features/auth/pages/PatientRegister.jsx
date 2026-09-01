@@ -71,6 +71,10 @@ export const PatientRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!otpVerified) {
+      setError('Please verify your mobile number with OTP before creating an account.');
+      return;
+    }
     setError('');
     setIsLoading(true);
 
@@ -83,7 +87,6 @@ export const PatientRegister = () => {
       setIsLoading(false);
     }
   };
-
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-8 bg-slate-50 relative overflow-hidden font-sans">
@@ -152,7 +155,7 @@ export const PatientRegister = () => {
                           const val = e.target.value.replace(/\D/g, '').slice(0, 10);
                           handleChange({ target: { name: 'mobile', value: val } });
                         }}
-                        disabled={otpVerified || otpSent}
+                        disabled={otpVerified}
                         className="block w-full pl-9 pr-3 py-3 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none bg-slate-50 focus:bg-white text-sm disabled:opacity-70 disabled:cursor-not-allowed"
                       />
                     </div>
@@ -160,13 +163,14 @@ export const PatientRegister = () => {
                       <button
                         type="button"
                         onClick={handleSendOtp}
-                        disabled={otpLoading || !formData.mobile}
-                        className="whitespace-nowrap px-3 py-2 border border-transparent rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none disabled:opacity-60"
+                        disabled={otpLoading || !formData.mobile || formData.mobile.length !== 10}
+                        className="whitespace-nowrap px-3 py-2 border border-transparent rounded-xl text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none disabled:opacity-60 transition-colors"
                       >
                         {otpSent ? 'Resend' : 'Get OTP'}
                       </button>
                     )}
                   </div>
+
 
                   {otpSent && !otpVerified && (
                     <div className="mt-2 flex gap-2">

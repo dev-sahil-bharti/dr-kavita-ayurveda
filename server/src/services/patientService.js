@@ -6,16 +6,29 @@ const AppError = require('../utils/AppError');
 const notify = require('../utils/notify');
 
 exports.registerPatient = async (data) => {
-  const patientExists = await Patient.findOne({ mobile: data.mobile });
-  if (patientExists) {
-    throw new AppError('Patient with this mobile already exists', 400);
+  const normalizedMobile = (data.mobile || '').replace(/\D/g, '').slice(-10);
+
+  if (normalizedMobile.length !== 10) {
+    throw new AppError('Please provide a valid 10-digit mobile number', 400);
   }
 
-  const patient = await Patient.create(data);
+  const patientExists = await Patient.findOne({ mobile: normalizedMobile });
+  if (patientExists) {
+    throw new AppError('A patient with this mobile number already exists. Please login.', 400);
+  }
+
+  const patient = await Patient.create({
+    ...data,
+    mobile: normalizedMobile,
+    isVerified: true,
+  });
 
   if (!patient) {
     throw new AppError('Invalid patient data', 400);
   }
+
+  // Cleanup registration OTP record
+  await Otp.deleteMany({ contact: normalizedMobile, purpose: 'register' });
 
   // Create Notification
   await Notification.create({
@@ -34,6 +47,7 @@ exports.registerPatient = async (data) => {
     token: generateToken(patient._id),
   };
 };
+
 
 exports.loginPatient = async (contact, password) => {
   const patient = await Patient.findOne({

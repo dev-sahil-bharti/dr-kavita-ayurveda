@@ -14,21 +14,30 @@ const otpSchema = new mongoose.Schema(
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      default: null,
     },
     userType: {
       type: String,
       enum: ['admin', 'patient'],
-      required: true,
+      default: 'patient',
+    },
+    purpose: {
+      type: String,
+      enum: ['register', 'reset_password', 'login', 'verification'],
+      default: 'register',
     },
     attempts: {
       type: Number,
       default: 0,
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
     createdAt: {
       type: Date,
       default: Date.now,
-      expires: 600, // MongoDB TTL: automatically deleted after 10 minutes (600 seconds)
+      expires: 600, // MongoDB TTL: automatically removed after 10 minutes
     },
   },
   { timestamps: false }
