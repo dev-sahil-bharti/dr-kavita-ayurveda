@@ -11,14 +11,17 @@ exports.sendReceipt = async (appointment) => {
     const dateStr = new Date(appointment.date).toLocaleDateString('en-IN');
     const service = appointment.preferredService || appointment.therapy || 'Consultation';
 
+    const mobileNumber = appointment.mobile || (appointment.patient && appointment.patient.mobile);
+    const emailAddress = appointment.email || (appointment.patient && appointment.patient.email);
+
     // 1. Send SMS
-    if (appointment.mobile) {
+    if (mobileNumber) {
       const smsMessage = `Dr. Kavita Ayurveda: Payment of Rs. ${amount} received for ${service} on ${dateStr} via ${paymentMethod}. Thank you.`;
-      await sendSMS(appointment.mobile, smsMessage);
+      await sendSMS(mobileNumber, smsMessage);
     }
 
     // 2. Generate PDF & Send Email
-    if (appointment.email) {
+    if (emailAddress) {
       const pdfBuffer = await new Promise((resolve, reject) => {
         const doc = new PDFDocument({ margin: 50 });
         let buffers = [];

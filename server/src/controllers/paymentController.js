@@ -58,7 +58,7 @@ exports.verifyPayment = catchAsync(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid signature' });
   }
 
-  const appointment = await Appointment.findById(appointmentId);
+  const appointment = await Appointment.findById(appointmentId).populate('patient', 'name email mobile');
   if (!appointment) {
     return res.status(404).json({ success: false, message: 'Appointment not found' });
   }
@@ -106,7 +106,7 @@ exports.paymentWebhook = catchAsync(async (req, res) => {
     const razorpayOrderId = paymentData.order_id;
     
     if (razorpayOrderId) {
-      const appointment = await Appointment.findOne({ razorpayOrderId });
+      const appointment = await Appointment.findOne({ razorpayOrderId }).populate('patient', 'name email mobile');
       
       if (appointment && appointment.paymentStatus !== 'paid') {
         appointment.paymentStatus = 'paid';

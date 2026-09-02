@@ -22,7 +22,7 @@ const startReminderCron = () => {
         status: 'confirmed',
         date: { $gte: startOfTomorrow, $lte: endOfTomorrow },
         reminderSent: false
-      });
+      }).populate('patient', 'name email mobile');
 
       console.log(`Found ${appointments.length} appointments for tomorrow requiring reminders.`);
 
