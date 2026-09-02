@@ -46,15 +46,15 @@ export const AppRoutes = () => {
     <Suspense fallback={<PageLoader />}>
       <Routes>
         {/* PUBLIC ROUTES */}
-        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route
-          path="/home"
+          path="/"
           element={
             <PublicLayout>
               <OnePageScroll />
             </PublicLayout>
           }
         />
+        <Route path="/home" element={<Navigate to="/" replace />} />
         <Route
           path="/panchakarma"
           element={
@@ -258,7 +258,7 @@ export const AppRoutes = () => {
         />
 
         {/* FALLBACK */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
   );

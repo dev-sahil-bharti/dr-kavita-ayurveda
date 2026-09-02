@@ -21,18 +21,18 @@ export const PublicNavbar = () => {
   }, [location]);
 
   const navLinks = [
-    { name: 'HOME', path: '/home#home' },
-    { name: 'PANCHAKARMA', path: '/home#panchakarma' },
-    { name: 'THERAPIES', path: '/home#therapies', hasDropdown: true },
-    { name: 'GALLERY', path: '/home#gallery' },
-    { name: 'ABOUT US', path: '/home#about' },
-    { name: 'CONTACT US', path: '/home#contact' },
+    { name: 'HOME', path: '/#home' },
+    { name: 'PANCHAKARMA', path: '/#panchakarma' },
+    { name: 'THERAPIES', path: '/#therapies', hasDropdown: true },
+    { name: 'GALLERY', path: '/#gallery' },
+    { name: 'ABOUT US', path: '/#about' },
+    { name: 'CONTACT US', path: '/#contact' },
   ];
 
   const handleNavClick = (e, path) => {
-    if (path.startsWith('/home#')) {
+    if (path.includes('#')) {
       const hash = path.split('#')[1];
-      if (location.pathname === '/home' || location.pathname === '/') {
+      if (location.pathname === '/' || location.pathname === '/home') {
         e.preventDefault();
         const element = document.getElementById(hash);
         if (element) {
