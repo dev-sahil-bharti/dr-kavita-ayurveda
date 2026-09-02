@@ -36,7 +36,14 @@ export const PublicNavbar = () => {
         e.preventDefault();
         const element = document.getElementById(hash);
         if (element) {
-          element.scrollIntoView({ behavior: 'smooth' });
+          const navbarHeight = 80;
+          const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+          const offsetPosition = elementPosition - navbarHeight;
+          window.scrollTo({
+            top: offsetPosition > 0 ? offsetPosition : 0,
+            behavior: 'smooth',
+          });
+          window.history.pushState(null, '', `/#${hash}`);
         }
         setIsMobileMenuOpen(false);
       }
