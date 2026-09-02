@@ -2,69 +2,89 @@ const nodemailer = require('nodemailer');
 const https = require('https');
 const Admin = require('../models/Admin');
 
-// Initialize Nodemailer transporter
+const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+// Initialize Nodemailer transporter with Gmail / custom SMTP support
 const transporter = nodemailer.createTransport({
+  service: (process.env.SMTP_HOST && process.env.SMTP_HOST.includes('gmail')) || (!process.env.SMTP_HOST && emailUser?.includes('gmail')) ? 'gmail' : undefined,
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: process.env.SMTP_PORT || 587,
+  port: Number(process.env.SMTP_PORT) || 587,
+  secure: Number(process.env.SMTP_PORT) === 465,
   auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
+    user: emailUser,
+    pass: emailPass,
   },
 });
 
 exports.sendEmail = async (to, subject, text, attachments = []) => {
   try {
-    if (!process.env.SMTP_USER) {
-      console.warn('⚠️ SMTP_USER not configured. Skipping real email sent to:', to);
-      console.log(`📧 Email Body: ${text}`);
+    if (!emailUser || !emailPass || emailUser.includes('placeholder')) {
+      console.warn('⚠️ SMTP/EMAIL_USER not fully configured in .env. Skipping real email sent to:', to);
+      console.log(`📧 [MOCK EMAIL] To: ${to} | Subject: ${subject}\nBody: ${text}`);
       return;
     }
+
     await transporter.sendMail({
-      from: `"Dr. Kavita Ayurveda" <${process.env.SMTP_USER}>`,
+      from: `"Dr. Kavita Ayurveda" <${emailUser}>`,
       to,
       subject,
       text,
       attachments,
     });
-    console.log('✅ Email sent to', to);
+    console.log(`✅ Real Email delivered to: ${to}`);
   } catch (error) {
-    console.error('❌ Failed to send email:', error.message);
+    console.error(`❌ Failed to send email to ${to}:`, error.message);
   }
 };
 
 exports.sendSMS = async (mobile, message) => {
   try {
     const msg91AuthKey = process.env.MSG91_AUTH_KEY;
-    if (!msg91AuthKey) {
-       console.warn('⚠️ MSG91_AUTH_KEY not configured. Skipping real SMS to:', mobile);
-       console.log(`📱 SMS Body: ${message}`);
-       return;
+    if (!msg91AuthKey || msg91AuthKey.includes('placeholder')) {
+      console.warn('⚠️ MSG91_AUTH_KEY not configured in .env. Skipping real SMS to:', mobile);
+      console.log(`📱 [MOCK SMS] To: ${mobile}\nBody: ${message}`);
+      return;
     }
-    
-    // Format mobile
+
+    // Format mobile with 91 country code
     let formattedMobile = mobile.replace(/\D/g, '');
     if (formattedMobile.length === 10) {
       formattedMobile = '91' + formattedMobile;
     }
 
-    // In India, sending custom text via MSG91 requires DLT template ID. 
-    // If not strict, this basic API sends the SMS.
-    const url = `https://api.msg91.com/api/sendhttp.php?authkey=${msg91AuthKey}&mobiles=${formattedMobile}&message=${encodeURIComponent(message)}&sender=DRKAVI&route=4`;
+    const templateId = process.env.MSG91_OTP_TEMPLATE_ID;
 
-    await new Promise((resolve, reject) => {
-      https.get(url, (response) => {
-        let data = '';
-        response.on('data', chunk => data += chunk);
-        response.on('end', () => {
-          console.log(`📱 REAL SMS SENT to ${formattedMobile} via MSG91. Response: ${data}`);
-          resolve();
-        });
-      }).on('error', (err) => {
-        console.error('MSG91 Request Error:', err);
-        resolve(); // Don't throw to avoid breaking the execution flow
+    // Use MSG91 v5 OTP or SMS Endpoint
+    const url = `https://control.msg91.com/api/v5/otp?template_id=${encodeURIComponent(templateId || '')}&mobile=${encodeURIComponent(formattedMobile)}&authkey=${encodeURIComponent(msg91AuthKey)}`;
+
+    await new Promise((resolve) => {
+      const request = https.request(
+        url,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            authkey: msg91AuthKey,
+          },
+        },
+        (response) => {
+          let data = '';
+          response.on('data', (chunk) => (data += chunk));
+          response.on('end', () => {
+            console.log(`📱 MSG91 SMS Dispatch to ${formattedMobile}. Response status: ${response.statusCode}, Body: ${data}`);
+            resolve();
+          });
+        }
+      );
+
+      request.on('error', (err) => {
+        console.error('❌ MSG91 SMS Request Error:', err.message);
+        resolve();
       });
-    });
 
+      request.end();
+    });
   } catch (error) {
     console.error('❌ Failed to send SMS:', error.message);
   }
@@ -74,9 +94,9 @@ exports.notifyPatient = async (appointment, type) => {
   try {
     let subject = '';
     let message = '';
-    
+
     const dateStr = new Date(appointment.date).toLocaleDateString('en-IN');
-    
+
     switch (type) {
       case 'requested':
         subject = 'Appointment Requested - Dr. Kavita Ayurveda';
@@ -91,7 +111,7 @@ exports.notifyPatient = async (appointment, type) => {
         break;
       case 'cancelled':
         subject = 'Appointment Cancelled - Dr. Kavita Ayurveda';
-        message = `Aapka appointment jo ${dateStr} ko tha, wo cancel kar diya gaya hai. Assuvidha ke liye khed hai.`;
+        message = `Aapka appointment jo ${dateStr} ko tha, wo cancel kar diya gaya hai.`;
         break;
       case 'rescheduled':
         subject = 'Appointment Rescheduled - Dr. Kavita Ayurveda';
@@ -109,51 +129,34 @@ exports.notifyPatient = async (appointment, type) => {
       default:
         return;
     }
-    
-    // Extract mobile and email with fallback to populated patient object
+
     const mobileNumber = appointment.mobile || (appointment.patient && appointment.patient.mobile);
     const emailAddress = appointment.email || (appointment.patient && appointment.patient.email);
 
-    // Send SMS
     if (mobileNumber) {
       await exports.sendSMS(mobileNumber, message);
     }
-    
-    // Send Email
+
     if (emailAddress) {
       await exports.sendEmail(emailAddress, subject, message);
     }
   } catch (error) {
-    console.error('❌ Notification failed (but execution continues):', error.message);
+    console.error('❌ Notification failed (execution continues):', error.message);
   }
 };
 
 exports.notifyAdmin = async (appointment, type) => {
   try {
-    let subject = '';
-    let message = '';
-    
     const dateStr = new Date(appointment.date).toLocaleDateString('en-IN');
-    
-    switch (type) {
-      case 'requested':
-        subject = 'New Appointment Request - Dr. Kavita Ayurveda';
-        message = `New appointment requested by ${appointment.patientName} for ${appointment.preferredService} on ${dateStr} at ${appointment.timeSlot}.`;
-        break;
-      default:
-        return;
-    }
-    
-    // Fetch all admins
+    const subject = 'New Appointment Request - Dr. Kavita Ayurveda';
+    const message = `New appointment requested by ${appointment.patientName} for ${appointment.preferredService} on ${dateStr} at ${appointment.timeSlot}.`;
+
     const admins = await Admin.find();
-    
+
     for (const admin of admins) {
-      // Send SMS
       if (admin.mobileNo) {
         await exports.sendSMS(admin.mobileNo, message);
       }
-      
-      // Send Email
       if (admin.email) {
         await exports.sendEmail(admin.email, subject, message);
       }

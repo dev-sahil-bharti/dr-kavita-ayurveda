@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
 
     SEND_OTP: '/otp/send',
     VERIFY_OTP: '/otp/verify',
+    VALIDATE_WIDGET_TOKEN: '/otp/validate-token',
   },
 
   // Admin

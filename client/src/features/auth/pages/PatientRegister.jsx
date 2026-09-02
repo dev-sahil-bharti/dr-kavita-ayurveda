@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../../context/AuthContext';
 import { Eye, EyeOff, ShieldAlert, Check } from 'lucide-react';
 import { authService } from '../services/authService';
+import {
+  initMsg91Widget,
+  isValidIndianMobile,
+  normalizeIndianMobile,
+} from '../../../services/msg91/msg91Widget';
 import doctorIllustration from '../../../assets/doctor_illustration.png';
 import Button from '../../../components/common/Button';
 
@@ -23,55 +28,74 @@ export const PatientRegister = () => {
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpCode, setOtpCode] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
+  const [msg91AccessToken, setMsg91AccessToken] = useState('');
 
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || '/patient/appointments';
   const { registerPatient } = useAuth();
 
+  // Initialize MSG91 OTP Widget on mount
+  useEffect(() => {
+    initMsg91Widget().catch((err) => {
+      console.warn('MSG91 Widget initialization notice:', err.message);
+    });
+  }, []);
 
   const handleSendOtp = async () => {
-    if (!formData.mobile) {
-      setError('Please enter a mobile number first.');
+    const normalizedMobile = normalizeIndianMobile(formData.mobile);
+    if (!normalizedMobile || !isValidIndianMobile(normalizedMobile)) {
+      setError('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
     setOtpLoading(true);
     setError('');
     try {
-      await authService.sendOtp(formData.mobile);
+      if (otpSent) {
+        await authService.retryOtp(normalizedMobile);
+      } else {
+        await authService.sendOtp(normalizedMobile);
+      }
       setOtpSent(true);
+      setError('');
     } catch (err) {
-      setError(err.message || 'Failed to send OTP.');
+      setError(err.message || 'Unable to send OTP. Please try again.');
     } finally {
       setOtpLoading(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (!otpCode) {
-      setError('Please enter the OTP.');
+    if (!otpCode || otpCode.trim().length < 4) {
+      setError('Please enter the OTP sent to your mobile.');
       return;
     }
     setOtpLoading(true);
     setError('');
     try {
-      await authService.verifyOtp(formData.mobile, otpCode);
-      setOtpVerified(true);
-      setError('');
+      const result = await authService.verifyOtp(formData.mobile, otpCode.trim());
+      if (result && result.accessToken) {
+        setMsg91AccessToken(result.accessToken);
+        setOtpVerified(true);
+        setError('');
+      } else {
+        throw new Error('Verification failed: No access token received.');
+      }
     } catch (err) {
-      setError(err.message || 'Invalid OTP.');
+      setError(err.message || 'Invalid or expired OTP. Please try again.');
     } finally {
       setOtpLoading(false);
     }
   };
 
   const handleChange = (e) => {
+    setError('');
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!otpVerified) {
+    if (!otpVerified || !msg91AccessToken) {
       setError('Please verify your mobile number with OTP before creating an account.');
       return;
     }
@@ -79,7 +103,11 @@ export const PatientRegister = () => {
     setIsLoading(true);
 
     try {
-      await registerPatient(formData);
+      await registerPatient({
+        ...formData,
+        mobile: normalizeIndianMobile(formData.mobile),
+        msg91AccessToken,
+      });
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.message || 'Registration failed.');

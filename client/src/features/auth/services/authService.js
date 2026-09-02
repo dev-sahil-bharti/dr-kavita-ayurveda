@@ -1,5 +1,10 @@
 import apiClient from '../../../services/api/client';
 import { API_ENDPOINTS } from '../../../services/api/endpoints';
+import {
+  sendWidgetOtp,
+  verifyWidgetOtp,
+  retryWidgetOtp,
+} from '../../../services/msg91/msg91Widget';
 
 export const authService = {
   // Admin Login
@@ -23,14 +28,25 @@ export const authService = {
     return data;
   },
 
-  // OTP
+  // OTP via MSG91 Widget
   sendOtp: async (mobile) => {
-    const { data } = await apiClient.post(API_ENDPOINTS.AUTH.SEND_OTP, { mobile });
-    return data;
+    return await sendWidgetOtp(mobile);
   },
 
   verifyOtp: async (mobile, otp) => {
-    const { data } = await apiClient.post(API_ENDPOINTS.AUTH.VERIFY_OTP, { mobile, otp });
+    return await verifyWidgetOtp(otp);
+  },
+
+  retryOtp: async (mobile) => {
+    return await retryWidgetOtp(mobile);
+  },
+
+  // Validate MSG91 Access Token with Backend
+  validateWidgetToken: async (accessToken, mobile) => {
+    const { data } = await apiClient.post(API_ENDPOINTS.AUTH.VALIDATE_WIDGET_TOKEN, {
+      accessToken,
+      mobile,
+    });
     return data;
   },
 

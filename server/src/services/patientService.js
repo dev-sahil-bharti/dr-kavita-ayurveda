@@ -4,12 +4,34 @@ const Otp = require('../models/Otp');
 const generateToken = require('../utils/generateToken');
 const AppError = require('../utils/AppError');
 const notify = require('../utils/notify');
+const { verifyMsg91AccessToken, normalizeIndianMobile } = require('../utils/msg91Validator');
 
 exports.registerPatient = async (data) => {
-  const normalizedMobile = (data.mobile || '').replace(/\D/g, '').slice(-10);
+  const normalizedMobile = normalizeIndianMobile(data.mobile || '');
 
   if (normalizedMobile.length !== 10) {
     throw new AppError('Please provide a valid 10-digit mobile number', 400);
+  }
+
+  // Server-Side MSG91 Token Validation
+  const accessToken = data.msg91AccessToken || data.token;
+  if (accessToken) {
+    const verification = await verifyMsg91AccessToken(accessToken);
+    if (verification.mobile && verification.mobile !== normalizedMobile) {
+      throw new AppError(
+        'The mobile number verified via OTP does not match the registration mobile number.',
+        400
+      );
+    }
+  } else {
+    // If MSG91_AUTH_KEY is configured, enforce token requirement
+    const authKey = process.env.MSG91_AUTH_KEY;
+    if (authKey && !authKey.includes('placeholder')) {
+      throw new AppError(
+        'Mobile number must be verified with MSG91 OTP before creating an account.',
+        400
+      );
+    }
   }
 
   const patientExists = await Patient.findOne({ mobile: normalizedMobile });
@@ -17,8 +39,15 @@ exports.registerPatient = async (data) => {
     throw new AppError('A patient with this mobile number already exists. Please login.', 400);
   }
 
+  // Sanitize fields before saving
+  const patientData = { ...data };
+  if (patientData.gender === 'select-gender' || !patientData.gender) {
+    delete patientData.gender;
+  }
+  delete patientData.msg91AccessToken;
+
   const patient = await Patient.create({
-    ...data,
+    ...patientData,
     mobile: normalizedMobile,
     isVerified: true,
   });
