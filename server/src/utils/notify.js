@@ -5,12 +5,15 @@ const Admin = require('../models/Admin');
 const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
 const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
 
-// Initialize Nodemailer transporter with Gmail / custom SMTP support
+// Initialize Nodemailer transporter with Gmail / custom SMTP support and strict timeouts
 const transporter = nodemailer.createTransport({
   service: (process.env.SMTP_HOST && process.env.SMTP_HOST.includes('gmail')) || (!process.env.SMTP_HOST && emailUser?.includes('gmail')) ? 'gmail' : undefined,
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
   port: Number(process.env.SMTP_PORT) || 587,
   secure: Number(process.env.SMTP_PORT) === 465,
+  connectionTimeout: 6000,
+  greetingTimeout: 6000,
+  socketTimeout: 8000,
   auth: {
     user: emailUser,
     pass: emailPass,
@@ -67,16 +70,23 @@ exports.sendSMS = async (mobile, message) => {
             'Content-Type': 'application/json',
             authkey: msg91AuthKey,
           },
+          timeout: 6000,
         },
         (response) => {
           let data = '';
           response.on('data', (chunk) => (data += chunk));
           response.on('end', () => {
-            console.log(`📱 MSG91 SMS Dispatch to ${formattedMobile}. Response status: ${response.statusCode}, Body: ${data}`);
+            console.log(`📱 MSG91 SMS Dispatch to ${formattedMobile}. Response status: ${response.statusCode}`);
             resolve();
           });
         }
       );
+
+      request.on('timeout', () => {
+        request.destroy();
+        console.warn(`⚠️ MSG91 SMS dispatch timed out for ${formattedMobile}`);
+        resolve();
+      });
 
       request.on('error', (err) => {
         console.error('❌ MSG91 SMS Request Error:', err.message);

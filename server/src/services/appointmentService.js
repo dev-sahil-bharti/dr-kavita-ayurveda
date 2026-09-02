@@ -72,9 +72,13 @@ exports.bookAppointment = async (userId, data, file) => {
     recipient: appointment.patient,
   });
 
-  // SMS & Email alerts
-  await notifyPatient(appointment, 'requested');
-  await notifyAdmin(appointment, 'requested');
+  // SMS & Email alerts (dispatched in background so client gets an instant response)
+  notifyPatient(appointment, 'requested').catch((err) =>
+    console.error('Failed to notify patient on booking:', err.message)
+  );
+  notifyAdmin(appointment, 'requested').catch((err) =>
+    console.error('Failed to notify admin on booking:', err.message)
+  );
 
   return appointment;
 };
@@ -169,7 +173,9 @@ exports.updateAppointmentStatus = async (id, status, date, timeSlot) => {
     });
 
     if (['confirmed', 'cancelled', 'rescheduled'].includes(status)) {
-      await notifyPatient(appointment, status);
+      notifyPatient(appointment, status).catch((err) =>
+        console.error(`Failed to notify patient on status ${status}:`, err.message)
+      );
     }
   }
 
@@ -235,7 +241,9 @@ exports.acceptAppointment = async (id) => {
   }
 
   await appointment.save();
-  await notifyPatient(appointment, 'confirmed');
+  notifyPatient(appointment, 'confirmed').catch((err) =>
+    console.error('Failed to notify patient on accept:', err.message)
+  );
 
   return appointment;
 };
@@ -295,7 +303,9 @@ exports.markCashPaid = async (id, amount) => {
   appointment.amount = amount || 0;
   await appointment.save();
 
-  await sendReceipt(appointment);
+  sendReceipt(appointment).catch((err) =>
+    console.error('Failed to send receipt:', err.message)
+  );
 
   return appointment;
 };
@@ -321,7 +331,9 @@ exports.completeAppointment = async (id, details) => {
   await appointment.save();
 
   if (sessionNumber && totalSessions && sessionNumber < totalSessions && followUpDate) {
-    await notifyPatient(appointment, 'followup');
+    notifyPatient(appointment, 'followup').catch((err) =>
+      console.error('Failed to notify patient on followup:', err.message)
+    );
   }
 
   return appointment;
