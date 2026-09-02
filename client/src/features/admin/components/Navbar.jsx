@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Menu, Search, Bell, Check, User, Calendar, MessageSquare } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Menu, Search, Bell, Check, User, Calendar, MessageSquare, Globe, ExternalLink } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { adminService } from '../services/adminService';
 
@@ -106,7 +106,20 @@ export const Navbar = ({ toggleSidebar }) => {
         </div>
       </div>
 
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-3 sm:space-x-4">
+        {/* Public Website Link */}
+        <Link
+          to="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 hover:text-emerald-800 border border-emerald-200/80 rounded-xl transition-all shadow-sm group"
+          title="Open Public Website in a new tab"
+        >
+          <Globe className="h-3.5 w-3.5 text-emerald-600 group-hover:rotate-12 transition-transform" />
+          <span className="hidden sm:inline">View Site</span>
+          <ExternalLink className="h-3 w-3 text-emerald-500 opacity-70" />
+        </Link>
+
         {/* Notifications */}
         <div className="relative" ref={dropdownRef}>
           <button
