@@ -2,8 +2,8 @@ const Appointment = require('../models/Appointment');
 const Notification = require('../models/Notification');
 const AppError = require('../utils/AppError');
 const Razorpay = require('razorpay');
-const { notifyPatient, notifyAdmin } = require('../utils/notify');
-const { uploadToCloudinary } = require('../utils/cloudinary');
+const { notifyPatient, notifyAdmin, notifyAdminAppointmentCancelled } = require('../utils/notify');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../utils/cloudinary');
 const { sendReceipt } = require('../utils/receipt');
 
 exports.bookAppointment = async (userId, data, file) => {
@@ -24,34 +24,85 @@ exports.bookAppointment = async (userId, data, file) => {
   } = data;
 
   let reportsFile = '';
+  let documents = [];
+  let uploadedPublicId = null;
+  let uploadedResourceType = 'auto';
+
+  console.log('📝 [Appointment Booking] Patient ID:', userId);
+  console.log('📝 [Appointment Booking] Patient Name:', patientName, 'Mobile:', mobile);
   if (file) {
-    let resourceType = 'auto';
-    if (file.mimetype && file.mimetype.startsWith('image/')) {
-      resourceType = 'image';
-    }
-    const uploadResult = await uploadToCloudinary(file.buffer, 'dr_kavita_uploads', resourceType);
-    reportsFile = uploadResult.secure_url;
+    console.log(`📄 [Appointment Booking] Attached Document: ${file.originalname} (${(file.size / 1024).toFixed(1)} KB, MIME: ${file.mimetype})`);
+  } else {
+    console.log('ℹ️ [Appointment Booking] No document attached.');
   }
 
-  const appointment = await Appointment.create({
-    patient: userId,
-    patientName,
-    mobile,
-    email,
-    gender,
-    age: Number(age) || 0,
-    occupation: occupation || '',
-    urgency: urgency || 'Standard',
-    consultationType: consultationType || 'In-person',
-    preferredService,
-    date,
-    timeSlot,
-    reasonForVisit: reasonForVisit || '',
-    isFirstVisit: isFirstVisit === 'Yes' || isFirstVisit === true || isFirstVisit === 'true',
-    reportsFile,
-    therapy: preferredService,
-    message: reasonForVisit || '',
-  });
+  if (file) {
+    if (file.mimetype && file.mimetype.startsWith('image/')) {
+      uploadedResourceType = 'image';
+    } else if (file.mimetype === 'application/pdf') {
+      uploadedResourceType = 'auto';
+    } else {
+      uploadedResourceType = 'raw';
+    }
+
+    try {
+      console.log(`☁️ [Cloudinary] Uploading to dr-kavita-ayurveda/appointments as ${uploadedResourceType}...`);
+      const uploadResult = await uploadToCloudinary(
+        file.buffer,
+        'dr-kavita-ayurveda/appointments',
+        uploadedResourceType
+      );
+
+      console.log(`✅ [Cloudinary] Upload success! URL: ${uploadResult.secure_url}`);
+      reportsFile = uploadResult.secure_url;
+      uploadedPublicId = uploadResult.public_id;
+
+      documents.push({
+        originalName: file.originalname || 'Medical Document',
+        url: uploadResult.secure_url,
+        publicId: uploadResult.public_id,
+        resourceType: uploadResult.resource_type || uploadedResourceType,
+        format: uploadResult.format || file.originalname.split('.').pop(),
+        bytes: uploadResult.bytes || file.size,
+        uploadedAt: new Date(),
+      });
+    } catch (uploadError) {
+      console.error('❌ Cloudinary Upload Failed:', uploadError.message);
+      throw new AppError('Failed to upload medical document to Cloudinary. Please try again.', 500);
+    }
+  }
+
+  let appointment;
+  try {
+    appointment = await Appointment.create({
+      patient: userId,
+      patientName,
+      mobile,
+      email,
+      gender,
+      age: Number(age) || 0,
+      occupation: occupation || '',
+      urgency: urgency || 'Standard',
+      consultationType: consultationType || 'In-person',
+      preferredService,
+      date,
+      timeSlot,
+      reasonForVisit: reasonForVisit || '',
+      isFirstVisit: isFirstVisit === 'Yes' || isFirstVisit === true || isFirstVisit === 'true',
+      reportsFile,
+      documents,
+      therapy: preferredService,
+      message: reasonForVisit || '',
+    });
+  } catch (dbError) {
+    // Prevent orphaned Cloudinary files if DB creation fails
+    if (uploadedPublicId) {
+      deleteFromCloudinary(uploadedPublicId, uploadedResourceType).catch((err) =>
+        console.error('Failed to cleanup Cloudinary file:', err.message)
+      );
+    }
+    throw dbError;
+  }
 
   // Admin Notification
   await Notification.create({
@@ -345,3 +396,68 @@ exports.getPatientAppointmentHistory = async (userId) => {
     status: 'completed',
   }).sort({ date: -1 });
 };
+
+exports.cancelPatientAppointment = async (userId, appointmentId, reason, note) => {
+  if (!reason || !reason.trim()) {
+    throw new AppError('Cancellation reason is required', 400);
+  }
+
+  const appointment = await Appointment.findOne({
+    _id: appointmentId,
+    patient: userId,
+  }).populate('patient', 'name email mobile');
+
+  if (!appointment) {
+    throw new AppError('Appointment not found or unauthorized', 404);
+  }
+
+  if (appointment.status === 'completed' || appointment.status === 'cancelled') {
+    throw new AppError(`Cannot cancel an appointment that is already ${appointment.status}`, 400);
+  }
+
+  const cleanReason = reason.trim();
+  const cleanNote = note ? note.trim() : '';
+  const fullReason = cleanNote ? `${cleanReason}: ${cleanNote}` : cleanReason;
+
+  appointment.status = 'cancelled';
+  appointment.cancellation = {
+    reason: cleanReason,
+    note: cleanNote,
+    cancelledBy: 'patient',
+    cancelledAt: new Date(),
+  };
+  appointment.cancelReason = fullReason;
+  await appointment.save();
+
+  // Admin In-App Notification
+  Notification.create({
+    title: 'Appointment Cancelled by Patient',
+    message: `Appointment for ${appointment.therapy || appointment.preferredService} on ${new Date(appointment.date).toLocaleDateString()} was cancelled by patient (${appointment.patientName}). Reason: ${fullReason}`,
+    type: 'appointment',
+    relatedId: appointment._id,
+    onModel: 'Appointment',
+  }).catch((err) => console.error('Failed to create admin cancellation notification:', err.message));
+
+  // Patient In-App Notification
+  Notification.create({
+    title: 'Appointment Cancelled',
+    message: `Your appointment for ${appointment.therapy || appointment.preferredService} on ${new Date(appointment.date).toLocaleDateString()} has been cancelled.`,
+    type: 'appointment',
+    relatedId: appointment._id,
+    onModel: 'Appointment',
+    recipient: appointment.patient._id || appointment.patient,
+  }).catch((err) => console.error('Failed to create patient cancellation notification:', err.message));
+
+  // Patient SMS & Email alerts (non-blocking)
+  notifyPatient(appointment, 'cancelled').catch((err) =>
+    console.error('Failed to notify patient on cancel:', err.message)
+  );
+
+  // Admin Cancellation Email Alert (non-blocking)
+  notifyAdminAppointmentCancelled(appointment).catch((err) =>
+    console.error('Failed to send admin cancellation email:', err.message)
+  );
+
+  return appointment;
+};
+

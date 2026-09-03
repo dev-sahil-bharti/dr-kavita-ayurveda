@@ -30,7 +30,7 @@ export const PatientModal = ({ isOpen, onClose, patient, onSave }) => {
         const fetchAppointments = async () => {
           setLoadingAppts(true);
           try {
-            const res = await apiClient.get(`/appointment/patient/${patient._id}`);
+            const res = await apiClient.get(`/appointments/patient/${patient._id}`);
             setAppointments(res.data?.data || []);
           } catch (error) {
             console.error('Failed to fetch patient appointments', error);

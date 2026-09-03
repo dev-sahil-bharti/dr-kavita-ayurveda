@@ -40,6 +40,11 @@ export const AppointmentCard = ({ appointment, onUpdateStatus, onViewDetails }) 
                   Urgent
                 </Badge>
               )}
+              {(appointment.reportsFile || (appointment.documents && appointment.documents.length > 0)) && (
+                <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 uppercase tracking-wider text-[10px] font-bold">
+                  Report Attached
+                </span>
+              )}
             </div>
             {/* Quick Demographics */}
             <div className="flex items-center text-xs text-slate-500 mt-2 space-x-2 font-medium">
@@ -91,6 +96,24 @@ export const AppointmentCard = ({ appointment, onUpdateStatus, onViewDetails }) 
             </p>
           </div>
         </div>
+
+        {/* Cancelled Summary on Admin Card */}
+        {appointment.status === 'cancelled' && (
+          <div className="p-3 bg-rose-50/90 rounded-2xl border border-rose-100 text-xs">
+            <div className="flex items-center justify-between text-rose-800 font-bold mb-1">
+              <span className="flex items-center gap-1">
+                <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                Cancelled
+              </span>
+              <span className="text-[10px] uppercase font-bold text-rose-600 bg-white px-2 py-0.5 rounded-md border border-rose-200">
+                {appointment.cancellation?.cancelledBy ? `By ${appointment.cancellation.cancelledBy}` : 'By Patient'}
+              </span>
+            </div>
+            <p className="text-slate-700 font-medium truncate">
+              <span className="text-slate-500">Reason:</span> {appointment.cancellation?.reason || appointment.cancelReason || 'Not specified'}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Actions */}

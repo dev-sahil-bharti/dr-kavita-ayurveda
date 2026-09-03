@@ -65,3 +65,22 @@ exports.getPatientAppointmentHistory = catchAsync(async (req, res) => {
   const appointments = await appointmentService.getPatientAppointmentHistory(req.user.id);
   res.json({ success: true, data: appointments });
 });
+
+exports.cancelAppointmentByPatient = catchAsync(async (req, res) => {
+  const { reason, note, confirmation } = req.body;
+  if (!reason || !reason.trim()) {
+    return res.status(400).json({ success: false, message: 'Please select a cancellation reason.' });
+  }
+  if (confirmation !== true && confirmation !== 'true') {
+    return res.status(400).json({ success: false, message: 'Please confirm that you want to cancel this appointment.' });
+  }
+
+  const appointment = await appointmentService.cancelPatientAppointment(
+    req.user.id,
+    req.params.id,
+    reason,
+    note
+  );
+  res.json({ success: true, message: 'Appointment cancelled successfully', data: appointment });
+});
+

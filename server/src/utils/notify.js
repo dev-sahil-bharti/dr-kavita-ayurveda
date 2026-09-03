@@ -306,3 +306,130 @@ exports.notifyAdmin = async (appointment, type) => {
     console.error('❌ Admin Notification failed:', error.message);
   }
 };
+
+/**
+ * Dedicated Admin Email Notification for Patient Cancellation
+ */
+exports.notifyAdminAppointmentCancelled = async (appointment) => {
+  try {
+    const patientName = appointment.patientName || appointment.patient?.name || 'Patient';
+    const patientMobile = appointment.mobile || appointment.patient?.mobile || 'Not provided';
+    const patientEmail = appointment.email || appointment.patient?.email || 'Not provided';
+    const dateStr = new Date(appointment.date).toLocaleDateString('en-IN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+    const timeSlot = appointment.timeSlot || 'Standard Timing';
+    const consultationType = appointment.consultationType || 'In-person';
+    const preferredService = appointment.preferredService || appointment.therapy || 'Ayurvedic Consultation';
+
+    const reason = appointment.cancellation?.reason || appointment.cancelReason || 'Reason not specified';
+    const note = appointment.cancellation?.note || 'None';
+    const cancelledBy = appointment.cancellation?.cancelledBy || 'Patient';
+    const cancelledAtStr = appointment.cancellation?.cancelledAt
+      ? new Date(appointment.cancellation.cancelledAt).toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        })
+      : new Date().toLocaleString('en-IN', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+        });
+
+    const subject = 'Patient Appointment Cancelled - Dr. Kavita Ayurveda';
+
+    const plainText = `
+Patient Appointment Cancelled
+
+Appointment Details:
+Patient Name: ${patientName}
+Patient Mobile: ${patientMobile}
+Patient Email: ${patientEmail}
+Appointment Date: ${dateStr}
+Appointment Time: ${timeSlot}
+Consultation Type: ${consultationType}
+Preferred Service: ${preferredService}
+
+Cancellation Details:
+Cancellation Reason: ${reason}
+Additional Note: ${note}
+Cancelled By: ${cancelledBy}
+Cancelled At: ${cancelledAtStr}
+    `.trim();
+
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; background-color: #f9f6f0; padding: 24px; color: #1a2421; margin: 0;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          
+          <div style="background-color: #0f3c35; padding: 20px 24px; border-bottom: 4px solid #e11d48; text-align: center;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 20px; font-weight: bold;">Dr. Kavita Ayurveda - Admin Alert</h1>
+            <p style="color: #fecdd3; margin: 4px 0 0 0; font-size: 13px; font-weight: bold;">Patient Appointment Cancelled</p>
+          </div>
+
+          <div style="padding: 24px;">
+            <div style="display: inline-block; background-color: #ffe4e6; color: #be123c; font-size: 11px; font-weight: bold; padding: 4px 12px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 16px;">
+              Cancelled by Patient
+            </div>
+
+            <h2 style="font-size: 16px; color: #0f3c35; margin: 0 0 12px 0;">Appointment Cancellation Report</h2>
+            <p style="font-size: 13px; color: #475569; margin: 0 0 16px 0;">An existing appointment has been cancelled by the patient from their portal. The slot is now released.</p>
+
+            <h3 style="font-size: 13px; font-weight: bold; color: #0f3c35; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px 0;">Appointment Details</h3>
+            <table style="width: 100%; border-collapse: collapse; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 16px;">
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: bold; width: 40%; border-bottom: 1px solid #e2e8f0;">Patient Name:</td><td style="padding: 8px 12px; font-size: 12px; color: #0f3c35; font-weight: bold; border-bottom: 1px solid #e2e8f0;">${patientName}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: bold; border-bottom: 1px solid #e2e8f0;">Patient Mobile:</td><td style="padding: 8px 12px; font-size: 12px; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${patientMobile}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: bold; border-bottom: 1px solid #e2e8f0;">Patient Email:</td><td style="padding: 8px 12px; font-size: 12px; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${patientEmail}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: bold; border-bottom: 1px solid #e2e8f0;">Appointment Date:</td><td style="padding: 8px 12px; font-size: 12px; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${dateStr}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: bold; border-bottom: 1px solid #e2e8f0;">Appointment Time:</td><td style="padding: 8px 12px; font-size: 12px; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${timeSlot}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: bold; border-bottom: 1px solid #e2e8f0;">Consultation Type:</td><td style="padding: 8px 12px; font-size: 12px; color: #1e293b; border-bottom: 1px solid #e2e8f0;">${consultationType}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #64748b; font-weight: bold;">Preferred Service:</td><td style="padding: 8px 12px; font-size: 12px; color: #0f3c35; font-weight: bold;">${preferredService}</td></tr>
+            </table>
+
+            <h3 style="font-size: 13px; font-weight: bold; color: #be123c; text-transform: uppercase; letter-spacing: 0.5px; margin: 16px 0 8px 0;">Cancellation Details</h3>
+            <table style="width: 100%; border-collapse: collapse; background-color: #fff1f2; border-radius: 8px; border: 1px solid #fecdd3;">
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #9f1239; font-weight: bold; width: 40%; border-bottom: 1px solid #fecdd3;">Cancellation Reason:</td><td style="padding: 8px 12px; font-size: 12px; color: #be123c; font-weight: bold; border-bottom: 1px solid #fecdd3;">${reason}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #9f1239; font-weight: bold; border-bottom: 1px solid #fecdd3;">Additional Note:</td><td style="padding: 8px 12px; font-size: 12px; color: #475569; border-bottom: 1px solid #fecdd3;">${note}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #9f1239; font-weight: bold; border-bottom: 1px solid #fecdd3;">Cancelled By:</td><td style="padding: 8px 12px; font-size: 12px; color: #1e293b; font-weight: bold; border-bottom: 1px solid #fecdd3;">${cancelledBy}</td></tr>
+              <tr><td style="padding: 8px 12px; font-size: 12px; color: #9f1239; font-weight: bold;">Cancelled At:</td><td style="padding: 8px 12px; font-size: 12px; color: #1e293b;">${cancelledAtStr}</td></tr>
+            </table>
+
+            <div style="font-size: 11px; color: #94a3b8; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 12px; text-align: center;">
+              Dr. Kavita Ayurveda Clinic Management System
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Send to process.env.ADMIN_EMAIL if configured
+    const adminEnvEmail = process.env.ADMIN_EMAIL;
+    if (adminEnvEmail && adminEnvEmail !== emailUser) {
+      exports.sendEmail(adminEnvEmail, subject, plainText, [], htmlContent).catch((err) =>
+        console.error(`Failed to send cancellation email to ADMIN_EMAIL (${adminEnvEmail}):`, err.message)
+      );
+    }
+
+    // Send to all registered Admin users in database
+    const admins = await Admin.find();
+    for (const admin of admins) {
+      if (admin.email) {
+        exports.sendEmail(admin.email, subject, plainText, [], htmlContent).catch((err) =>
+          console.error(`Failed to send cancellation email to admin (${admin.email}):`, err.message)
+        );
+      }
+    }
+  } catch (error) {
+    console.error('❌ Admin Cancellation Email notification failed (safe fallback):', error.message);
+  }
+};
+

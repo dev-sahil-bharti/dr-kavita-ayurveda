@@ -59,6 +59,17 @@ const appointmentSchema = new mongoose.Schema({
   reportsFile: {
     type: String
   },
+  documents: [
+    {
+      originalName: { type: String },
+      url: { type: String },
+      publicId: { type: String },
+      resourceType: { type: String, default: 'auto' },
+      format: { type: String },
+      bytes: { type: Number },
+      uploadedAt: { type: Date, default: Date.now }
+    }
+  ],
   therapy: {
     type: String,
   },
@@ -77,9 +88,13 @@ const appointmentSchema = new mongoose.Schema({
   paymentMethod: { type: String, enum: ['online', 'cash', null], default: null },
   razorpayOrderId: { type: String },
   razorpayPaymentId: { type: String },
-  amount: { type: Number },
-  receiptSent: { type: Boolean, default: false },
   cancelReason: { type: String },
+  cancellation: {
+    reason: { type: String },
+    note: { type: String, default: '' },
+    cancelledBy: { type: String, enum: ['patient', 'admin', 'doctor', 'system'], default: 'patient' },
+    cancelledAt: { type: Date }
+  },
   checkedIn: { type: Boolean, default: false },
   checkedInAt: { type: Date },
   followUpDate: { type: Date },

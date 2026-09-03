@@ -15,7 +15,7 @@ cloudinary.config({
  * @param {String} resourceType - The resource type (e.g., 'image', 'raw' for documents, 'auto').
  * @returns {Promise<Object>} - A promise that resolves with the Cloudinary upload result.
  */
-const uploadToCloudinary = (fileBuffer, folder = 'dr_kavita', resourceType = 'auto') => {
+const uploadToCloudinary = (fileBuffer, folder = 'dr-kavita-ayurveda/appointments', resourceType = 'auto') => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
       {
@@ -35,7 +35,22 @@ const uploadToCloudinary = (fileBuffer, folder = 'dr_kavita', resourceType = 'au
   });
 };
 
+/**
+ * Deletes a file from Cloudinary (used for cleanup on failure).
+ * @param {String} publicId - The Cloudinary asset public ID.
+ * @param {String} resourceType - The Cloudinary resource type ('image', 'raw', etc.).
+ */
+const deleteFromCloudinary = async (publicId, resourceType = 'image') => {
+  if (!publicId) return;
+  try {
+    return await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  } catch (err) {
+    console.error(`⚠️ Failed to delete Cloudinary asset ${publicId}:`, err.message);
+  }
+};
+
 module.exports = {
   uploadToCloudinary,
-  cloudinary
+  deleteFromCloudinary,
+  cloudinary,
 };

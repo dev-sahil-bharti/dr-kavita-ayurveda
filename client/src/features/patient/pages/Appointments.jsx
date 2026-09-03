@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar as CalendarIcon, Clock, CheckCircle, Plus } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle, Plus, XCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { patientService } from '../services/patientService';
 import { formatDate } from '../../../utils/formatters';
@@ -8,11 +8,13 @@ import Badge from '../../../components/common/Badge';
 import Button from '../../../components/common/Button';
 import LoadingState from '../../../components/feedback/LoadingState';
 import EmptyState from '../../../components/feedback/EmptyState';
+import CancelAppointmentModal from '../components/CancelAppointmentModal';
 
 export const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [cancelModalAppointment, setCancelModalAppointment] = useState(null);
 
   const fetchAppointments = async (silent = false) => {
     try {
@@ -81,6 +83,17 @@ export const Appointments = () => {
     }
   };
 
+  const handleConfirmCancel = async ({ reason, note }) => {
+    if (!cancelModalAppointment) return;
+    try {
+      await patientService.cancelAppointment(cancelModalAppointment._id, { reason, note });
+      toast.success('Appointment cancelled successfully.');
+      fetchAppointments();
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-center">
@@ -115,112 +128,150 @@ export const Appointments = () => {
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {appointments.map((app) => (
-            <div
-              key={app._id}
-              className="bg-white rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col"
-            >
-              <div className="p-6 flex-grow">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-                    <CalendarIcon className="h-6 w-6" />
+          {appointments.map((app) => {
+            const canCancel = ['pending', 'confirmed', 'rescheduled'].includes(app.status?.toLowerCase());
+
+            return (
+              <div
+                key={app._id}
+                className="bg-white rounded-3xl border border-slate-200/80 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col"
+              >
+                <div className="p-6 flex-grow">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="h-12 w-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+                      <CalendarIcon className="h-6 w-6" />
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge status={app.status} size="sm" />
+                      {app.paymentStatus && (
+                        <Badge status={app.paymentStatus} size="sm" />
+                      )}
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <Badge status={app.status} size="sm" />
-                    {app.paymentStatus && (
-                      <Badge status={app.paymentStatus} size="sm" />
-                    )}
+
+                  <h3 className="text-lg font-bold text-slate-800 mb-1">
+                    {app.therapy || app.preferredService || 'Ayurvedic Consultation'}
+                  </h3>
+
+                  <div className="space-y-2 mt-4 text-sm">
+                    <div className="flex items-center text-slate-600">
+                      <CalendarIcon className="h-4 w-4 mr-2 text-slate-400" />
+                      <span className="font-semibold text-slate-700">
+                        {formatDate(app.date)}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-slate-600">
+                      <Clock className="h-4 w-4 mr-2 text-slate-400" />
+                      <span>{app.timeSlot || 'Standard Timing'}</span>
+                    </div>
                   </div>
+
+                  {app.message && (
+                    <div className="mt-4 p-3.5 bg-slate-50 rounded-xl text-xs text-slate-600 border border-slate-100 italic">
+                      "{app.message}"
+                    </div>
+                  )}
+
+                  {/* Cancelled Reason Notice */}
+                  {app.status === 'cancelled' && app.cancelReason && (
+                    <div className="mt-4 p-3 bg-rose-50 rounded-xl border border-rose-100 text-xs text-rose-700 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                      <div>
+                        <span className="font-bold">Cancellation Reason:</span> {app.cancelReason}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Consultation Details */}
+                  {app.status === 'completed' && (app.doctorNote || app.sessionNumber) && (
+                    <div className="mt-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 text-xs">
+                      {app.sessionNumber && app.totalSessions && (
+                        <div className="mb-3">
+                          <div className="flex justify-between font-bold text-emerald-900 mb-1">
+                            <span>Therapy Progress</span>
+                            <span>
+                              Session {app.sessionNumber} / {app.totalSessions}
+                            </span>
+                          </div>
+                          <div className="w-full bg-emerald-100 rounded-full h-2">
+                            <div
+                              className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
+                              style={{
+                                width: `${(app.sessionNumber / app.totalSessions) * 100}%`,
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      )}
+                      {app.doctorNote && (
+                        <div>
+                          <p className="font-bold text-emerald-900 uppercase tracking-wider mb-1">
+                            Doctor's Note
+                          </p>
+                          <p className="text-slate-700 leading-relaxed">{app.doctorNote}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <h3 className="text-lg font-bold text-slate-800 mb-1">
-                  {app.therapy || app.preferredService || 'Ayurvedic Consultation'}
-                </h3>
-
-                <div className="space-y-2 mt-4 text-sm">
-                  <div className="flex items-center text-slate-600">
-                    <CalendarIcon className="h-4 w-4 mr-2 text-slate-400" />
-                    <span className="font-semibold text-slate-700">
-                      {formatDate(app.date)}
+                <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+                  <div className="flex items-center w-full sm:w-auto">
+                    <span className="text-xs font-bold text-slate-600 flex items-center capitalize">
+                      <CheckCircle className="w-4 h-4 mr-1.5 text-emerald-500" />
+                      Status: {app.status}
                     </span>
                   </div>
-                  <div className="flex items-center text-slate-600">
-                    <Clock className="h-4 w-4 mr-2 text-slate-400" />
-                    <span>{app.timeSlot || 'Standard Timing'}</span>
-                  </div>
-                </div>
 
-                {app.message && (
-                  <div className="mt-4 p-3.5 bg-slate-50 rounded-xl text-xs text-slate-600 border border-slate-100 italic">
-                    "{app.message}"
-                  </div>
-                )}
-
-                {/* Consultation Details */}
-                {app.status === 'completed' && (app.doctorNote || app.sessionNumber) && (
-                  <div className="mt-4 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 text-xs">
-                    {app.sessionNumber && app.totalSessions && (
-                      <div className="mb-3">
-                        <div className="flex justify-between font-bold text-emerald-900 mb-1">
-                          <span>Therapy Progress</span>
-                          <span>
-                            Session {app.sessionNumber} / {app.totalSessions}
-                          </span>
-                        </div>
-                        <div className="w-full bg-emerald-100 rounded-full h-2">
-                          <div
-                            className="bg-emerald-600 h-2 rounded-full transition-all duration-500"
-                            style={{
-                              width: `${(app.sessionNumber / app.totalSessions) * 100}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
+                  <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-end">
+                    {/* Patient Cancellation Action */}
+                    {canCancel && (
+                      <button
+                        type="button"
+                        onClick={() => setCancelModalAppointment(app)}
+                        className="text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 hover:text-rose-700 border border-rose-200/80 px-3 py-1.5 rounded-xl transition-colors flex items-center gap-1"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Cancel
+                      </button>
                     )}
-                    {app.doctorNote && (
-                      <div>
-                        <p className="font-bold text-emerald-900 uppercase tracking-wider mb-1">
-                          Doctor's Note
-                        </p>
-                        <p className="text-slate-700 leading-relaxed">{app.doctorNote}</p>
-                      </div>
+
+                    {/* Payment Actions */}
+                    {app.status !== 'cancelled' && app.paymentStatus === 'unpaid' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            toast.success('Payment will be collected at the clinic.')
+                          }
+                          className="text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 px-3 py-1.5 rounded-xl transition-colors"
+                        >
+                          Pay at Clinic
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOnlinePayment(app._id, 500)}
+                          className="text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-1.5 rounded-xl transition-colors shadow-sm shadow-emerald-600/20"
+                        >
+                          Pay Online
+                        </button>
+                      </>
                     )}
                   </div>
-                )}
-              </div>
-
-              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
-                <div className="flex items-center w-full sm:w-auto">
-                  <span className="text-xs font-bold text-slate-600 flex items-center capitalize">
-                    <CheckCircle className="w-4 h-4 mr-1.5 text-emerald-500" />
-                    Status: {app.status}
-                  </span>
                 </div>
-
-                {/* Payment Actions */}
-                {app.status !== 'cancelled' && app.paymentStatus === 'unpaid' && (
-                  <div className="flex gap-2 w-full sm:w-auto">
-                    <button
-                      onClick={() =>
-                        toast.success('Payment will be collected at the clinic.')
-                      }
-                      className="flex-1 sm:flex-none text-xs font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 px-3.5 py-2 rounded-xl transition-colors"
-                    >
-                      Pay at Clinic
-                    </button>
-                    <button
-                      onClick={() => handleOnlinePayment(app._id, 500)}
-                      className="flex-1 sm:flex-none text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-xl transition-colors shadow-sm shadow-emerald-600/20"
-                    >
-                      Pay Online
-                    </button>
-                  </div>
-                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
+
+      {/* Cancel Appointment Modal */}
+      <CancelAppointmentModal
+        isOpen={Boolean(cancelModalAppointment)}
+        onClose={() => setCancelModalAppointment(null)}
+        appointment={cancelModalAppointment}
+        onConfirm={handleConfirmCancel}
+      />
     </div>
   );
 };

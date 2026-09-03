@@ -20,14 +20,24 @@ export const patientService = {
     if (!(formData instanceof FormData)) {
       payload = new FormData();
       Object.keys(formData).forEach((key) => {
-        if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
+        if (key === 'reports' && formData.reports instanceof File) {
+          payload.append('reports', formData.reports, formData.reports.name);
+        } else if (formData[key] !== null && formData[key] !== undefined && formData[key] !== '') {
           payload.append(key, formData[key]);
         }
       });
     }
 
-    // Omit explicit Content-Type header so Axios / browser automatically attaches multipart boundary
     const { data } = await apiClient.post(API_ENDPOINTS.APPOINTMENTS.BOOK, payload);
+    return data;
+  },
+
+  // Cancel Appointment
+  cancelAppointment: async (appointmentId, { reason, note }) => {
+    const { data } = await apiClient.patch(API_ENDPOINTS.APPOINTMENTS.CANCEL(appointmentId), {
+      reason,
+      note,
+    });
     return data;
   },
 

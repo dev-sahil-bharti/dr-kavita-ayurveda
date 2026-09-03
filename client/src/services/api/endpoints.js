@@ -49,6 +49,7 @@ export const API_ENDPOINTS = {
     HISTORY: '/patient/appointments/history',
     BOOK: '/appointments/book',
     UPDATE_STATUS: (id) => `/appointments/${id}/status`,
+    CANCEL: (id) => `/appointments/${id}/cancel`,
     BY_PATIENT: (patientId) => `/appointments/patient/${patientId}`,
   },
 

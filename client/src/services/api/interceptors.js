@@ -8,6 +8,12 @@ export const requestAuthInterceptor = (config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // If payload is FormData, remove static application/json header so boundary is auto-generated
+  if (config.data instanceof FormData) {
+    delete config.headers['Content-Type'];
+  }
+
   return config;
 };
 
